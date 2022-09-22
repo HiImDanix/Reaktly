@@ -1,6 +1,9 @@
 package com.dkanepe.reaktly;
 
 import org.springframework.context.annotation.Configuration;
+//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+//import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+//import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -9,8 +12,8 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableWebMvc
-public class WebConfig implements WebMvcConfigurer {
+//@EnableWebMvc
+public class WebSecurityConfig implements WebMvcConfigurer {
 
     @Configuration
     @EnableWebSecurity
@@ -20,6 +23,10 @@ public class WebConfig implements WebMvcConfigurer {
         protected void configure(HttpSecurity security) throws Exception
         {
             security.httpBasic().disable();
+            security
+                    .csrf().disable()
+                    .authorizeRequests()
+                    .anyRequest().permitAll(); // disable CSRF, for now.
         }
     }
 
@@ -27,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE")
+                .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
