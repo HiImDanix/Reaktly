@@ -1,9 +1,12 @@
 package com.dkanepe.reaktly.services;
 
+import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.SessionParameters;
+import com.dkanepe.reaktly.dto.PlayerDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
+import org.mapstruct.Mapper;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 
@@ -12,22 +15,26 @@ import java.util.Optional;
 @Service
 public class PlayerService {
 
-    PlayerRepository playerRepository;
+    private final PlayerRepository playerRepository;
+    private final MapStructMapper mapper;
 
-    public PlayerService(PlayerRepository playerRepository) {
+    public PlayerService(MapStructMapper mapper, PlayerRepository playerRepository) {
         this.playerRepository = playerRepository;
+        this.mapper = mapper;
     }
 
-    public Optional<Player> findById(Long id) {
-        return playerRepository.findById(id);
+    public PlayerDTO findBySessionOrThrow(String session) throws InvalidSession {
+        Player player = playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
+        return mapper.playerToPlayerDTO(player);
     }
 
-    public Player findBySessionOrThrow(String session) throws InvalidSession {
-        return playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
-    }
-
-    public Player findBySessionOrThrow(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public PlayerDTO findBySessionOrThrow(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         String session = (String) headerAccessor.getSessionAttributes().get(SessionParameters.PLAYER_SESSION.toString());
         return findBySessionOrThrow(session);
+    }
+
+    public Player findBSessionOrThrowNonDTO(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+        String session = (String) headerAccessor.getSessionAttributes().get(SessionParameters.PLAYER_SESSION.toString());
+        return playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
     }
 }

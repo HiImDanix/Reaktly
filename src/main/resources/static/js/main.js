@@ -28,7 +28,7 @@ function joinGame() {
         return;
     }
     var roomCode = document.querySelector('#room_code').value.trim();
-    var name = document.querySelector('#player_name').value.trim();
+    name = document.querySelector('#player_name').value.trim();
 
     let post = JSON.stringify({player: {name: name}, room_code: roomCode});
 
@@ -44,24 +44,25 @@ function joinGame() {
             // get the token from the response's 'token' parameter
             responseBody = JSON.parse(xhr.response);
             token = responseBody.session;
-            name = responseBody.name;
-            // hide the join game form
-            document.querySelector('#joinGameForm').classList.add('hidden');
-            // show the game board
-            // show login welcome msg
-            document.querySelector('#loginWelcomeMsg').innerHTML = 'Welcome, ' + name;
-            document.querySelector('#loginWelcomeMsg').classList.remove('hidden');
-            // connect to the websocket
-            connect();
-
+            // put token in local storage
+            localStorage.setItem('token', token);
+            localStorage.setItem('name', name);
+            joinGameSuccess();
         } else {
             alert('Error: ' + xhr.status);
         }
     }
+}
 
-
-
-
+function joinGameSuccess() {
+    // hide the join game form
+    document.querySelector('#joinGameForm').classList.add('hidden');
+    // show the game board
+    // show login welcome msg
+    document.querySelector('#loginWelcomeMsg').innerHTML = 'Welcome, ' + name;
+    document.querySelector('#loginWelcomeMsg').classList.remove('hidden');
+    // connect to the websocket
+    connect();
 }
 
 function gameClick() {
@@ -91,4 +92,32 @@ function onMessageReceived(payload) {
 
 function onError(error) {
     alert("Could not connect to WebSocket server. Please refresh this page to try again!");
+}
+
+
+window.onload = function () {
+    // check if token is in local storage
+    token = localStorage.getItem('token');
+    name = localStorage.getItem('name');
+    if (token != null) {
+        // make request to /player/session/{token}
+        const url = '/player/session/' + token;
+        let xhr = new XMLHttpRequest()
+
+        xhr.open('GET', url, true)
+
+        xhr.onload = function () {
+            if(xhr.status === 200) {
+                // if token is valid, connect to websocket
+                joinGameSuccess();
+            } else {
+                // if token is invalid, remove token from local storage
+                localStorage.removeItem('token');
+                localStorage.removeItem('name');
+                token = null;
+                name = null;
+            }
+        }
+        xhr.send();
+    }
 }

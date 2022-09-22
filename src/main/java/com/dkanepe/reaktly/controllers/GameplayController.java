@@ -1,6 +1,7 @@
 package com.dkanepe.reaktly.controllers;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.dto.PlayerDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Scoreboard;
@@ -38,7 +39,6 @@ public class GameplayController {
     @MessageMapping("/gameplay.click")
     @SendTo("/topic/click")
     public Scoreboard sendClick(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
-        Player player = playerService.findBySessionOrThrow(headerAccessor);
-        return gameplayService.click(player);
+        return gameplayService.click(headerAccessor);
     }
 }
