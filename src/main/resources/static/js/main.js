@@ -15,8 +15,9 @@ function connect(event) {
 
 function onConnected() {
     // Subscribe to the Public Topic
-    stompClient.subscribe('/topic/newPlayer', onMessageReceived);
+    stompClient.subscribe('/topic/newPlayer');
     stompClient.subscribe('/topic/click', onMessageReceived);
+    stompClient.subscribe('/topic/game/end', onMessageReceived);
 
     document.querySelector('#gameBoard').classList.remove('hidden');
 }
@@ -69,10 +70,14 @@ function gameClick() {
 
     if(stompClient) {
 
-        stompClient.send("/app/gameplay.click");
+        stompClient.send("/app/gameplay/PerfectClicker.click");
     }
     event.preventDefault();
 
+}
+
+function startGame() {
+    stompClient.send("/app/gameplay.start");
 }
 
 function onMessageReceived(payload) {

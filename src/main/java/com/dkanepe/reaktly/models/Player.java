@@ -37,7 +37,7 @@ public class Player {
     @ManyToOne
     @JsonIgnore
     @ToString.Exclude
-    private Room game;
+    private Room room;
 
     @PrePersist
     protected void onCreate() {

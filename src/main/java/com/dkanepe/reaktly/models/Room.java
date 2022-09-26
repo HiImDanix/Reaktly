@@ -1,13 +1,16 @@
 package com.dkanepe.reaktly.models;
 
 import com.dkanepe.reaktly.RandomString;
+import com.dkanepe.reaktly.models.games.Game;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -27,11 +30,17 @@ public class Room {
 
     private Status status = Status.WAITING;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "game")
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "room")
     private Set<Player> players = new HashSet<>();
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private Scoreboard scoreboard = new Scoreboard();
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<Game> games = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Game currentGame;
 
     @PrePersist
     protected void onCreate() {
@@ -43,6 +52,6 @@ public class Room {
     // Add player to the room and vice versa (bidirectionally)
     public void addPlayer(Player player) {
         players.add(player);
-        player.setGame(this);
+        player.setRoom(this);
     }
 }

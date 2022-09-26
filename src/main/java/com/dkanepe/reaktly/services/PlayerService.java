@@ -6,11 +6,9 @@ import com.dkanepe.reaktly.dto.PlayerDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
-import org.mapstruct.Mapper;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PlayerService {
@@ -33,7 +31,7 @@ public class PlayerService {
         return findBySessionOrThrow(session);
     }
 
-    public Player findBSessionOrThrowNonDTO(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public Player findBySessionOrThrowNonDTO(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         String session = (String) headerAccessor.getSessionAttributes().get(SessionParameters.PLAYER_SESSION.toString());
         return playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
     }

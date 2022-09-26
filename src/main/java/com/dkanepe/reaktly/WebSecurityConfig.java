@@ -22,6 +22,7 @@ public class WebSecurityConfig implements WebMvcConfigurer {
         @Override
         protected void configure(HttpSecurity security) throws Exception
         {
+            security.headers().frameOptions().disable();
             security.httpBasic().disable();
             security
                     .csrf().disable()
