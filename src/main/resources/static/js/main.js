@@ -3,6 +3,7 @@ const ScoreboardArea = document.querySelector('#scoreboard');
 // State variables
 let token = null;
 let name = null;
+let playerID = null;
 
 
 function connect(event) {
@@ -16,8 +17,8 @@ function connect(event) {
 function onConnected() {
     // Subscribe to the Public Topic
     stompClient.subscribe('/topic/newPlayer');
-    stompClient.subscribe('/topic/click', onMessageReceived);
-    stompClient.subscribe('/topic/game/end', onMessageReceived);
+    stompClient.subscribe('/topic/click', onGameClickReceived);
+    stompClient.subscribe('/topic/game/end', onGameEndReceived);
 
     document.querySelector('#gameBoard').classList.remove('hidden');
 }
@@ -45,6 +46,7 @@ function joinGame() {
             // get the token from the response's 'token' parameter
             responseBody = JSON.parse(xhr.response);
             token = responseBody.session;
+            playerID = responseBody.id;
             // put token in local storage
             localStorage.setItem('token', token);
             localStorage.setItem('name', name);
@@ -80,7 +82,7 @@ function startGame() {
     stompClient.send("/app/gameplay.start");
 }
 
-function onMessageReceived(payload) {
+function onGameEndReceived(payload) {
     // update scoreboard
     // This is an example message from the server:
     // {"id":2,"scores":[{"id":7,"player":{"id":3,"session":"28511eea-3846-4f45-9305-adceed7108e0","name":"Daniel"},"score":4}]}
@@ -93,6 +95,22 @@ function onMessageReceived(payload) {
         scoreElement.appendChild(document.createTextNode(score.player.name + ': ' + score.score));
         ScoreboardArea.appendChild(scoreElement);
     } );
+}
+
+function onGameClickReceived(payload) {
+    // Example message from the server:
+    // {"player_id":5,"time_clicked":"2022-09-27T22:54:15.8209354"}
+    // update #clicks element (increment by 1). Note: it might be empty
+    var click = JSON.parse(payload.body);
+
+    if (click.player_id == playerID) {
+        var clicks = document.querySelector('#clicks');
+        // parse int or default to 0
+        var currentClicks = parseInt(clicks.innerHTML) || 0;
+        clicks.textContent = currentClicks + 1;
+    }
+
+
 }
 
 function onError(error) {

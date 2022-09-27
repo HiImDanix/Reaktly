@@ -1,7 +1,7 @@
 package com.dkanepe.reaktly.controllers;
 
+import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
-import com.dkanepe.reaktly.models.Scoreboard;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -20,7 +20,7 @@ public class PerfectClickerC {
 
     @MessageMapping("click")
     @SendTo("/topic/click")
-    public Scoreboard sendClick(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public ClickDTO sendClick(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         return perfectClickerService.click(headerAccessor);
     }
 }

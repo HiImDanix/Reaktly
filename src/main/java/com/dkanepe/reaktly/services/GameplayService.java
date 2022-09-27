@@ -7,20 +7,15 @@ import com.dkanepe.reaktly.exceptions.NotEnoughGames;
 import com.dkanepe.reaktly.exceptions.NotEnoughPlayers;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
-import com.dkanepe.reaktly.models.Scoreboard;
-import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Set;
 
 // add sl4j logger
 @Slf4j
@@ -49,7 +44,7 @@ public class GameplayService {
             NotEnoughGames, GameAlreadyStarted {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
-        if (room.getStatus() != Room.Status.WAITING) {
+        if (room.getStatus() != Room.Status.LOBBY) {
             throw new GameAlreadyStarted("Cannot start the game because it has already started!");
         }
         if (room.getPlayers().size() < 1) {
@@ -61,7 +56,7 @@ public class GameplayService {
         Game game = room.getGames().iterator().next();
         room.setCurrentGame(game);
         room.getGames().remove(game);
-        room.setStatus(Room.Status.PLAYING);
+        room.setStatus(Room.Status.IN_PROGRESS);
         roomRepository.save(room);
         return player;
     }

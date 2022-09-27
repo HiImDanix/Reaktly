@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Getter @Setter @NoArgsConstructor @ToString
 public class Room {
     public enum Status {
-        WAITING, PLAYING
+        LOBBY, IN_PROGRESS, FINISHED
     }
 
     @Id
@@ -28,7 +28,7 @@ public class Room {
     @Column(nullable = false, unique = true)
     private String code;
 
-    private Status status = Status.WAITING;
+    private Status status = Status.LOBBY;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "room")
     private Set<Player> players = new HashSet<>();

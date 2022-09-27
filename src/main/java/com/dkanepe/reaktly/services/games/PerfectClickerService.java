@@ -1,14 +1,15 @@
 package com.dkanepe.reaktly.services.games;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.Scoreboard;
 import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
-import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.models.games.PerfectClicker.GameStatePerfectClicker;
+import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.repositories.GameRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
@@ -80,15 +81,16 @@ public class PerfectClickerService {
     }
 
     @Transactional
-    public Scoreboard click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public ClickDTO click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
-        if (player.getRoom().getStatus() != Room.Status.PLAYING) {
+        Room room = player.getRoom();
+        if (room.getStatus() != Room.Status.IN_PROGRESS) {
             throw new InvalidSession("Game is not in progress");
         }
-        if (player.getRoom().getCurrentGame().getType() != Game.GameType.PERFECT_CLICKER) {
+        if (room.getCurrentGame().getType() != Game.GameType.PERFECT_CLICKER) {
             throw new InvalidSession("Game is not Perfect Clicker");
         }
-        if (player.getRoom().getCurrentGame().isFinished()) {
+        if (room.getCurrentGame().isFinished()) {
             throw new InvalidSession("This particular game is already finished");
         }
 
@@ -107,7 +109,7 @@ public class PerfectClickerService {
         state.setLastClick(LocalDateTime.now());
         gameRepository.save(game);
 
-        return addScoreboardPoints(player, 1);
+        return new ClickDTO(state.getPlayer(), state.getLastClick());
     }
 
     public void startGame(Player player) {
