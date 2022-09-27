@@ -1,16 +1,15 @@
 package com.dkanepe.reaktly.models.games.PerfectClicker;
 
-import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.games.Game;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.*;
-import java.util.HashMap;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
+import javax.persistence.OneToMany;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,8 +22,10 @@ public class PerfectClicker extends Game {
 
     private int targetClicks;
 
-    @ElementCollection
-    private Map<Player, Integer> clicks = new HashMap<>();
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GameStatePerfectClicker> state = new HashSet<>();
+
+
 
     public PerfectClicker(int targetClicks) {
         this.targetClicks = targetClicks;

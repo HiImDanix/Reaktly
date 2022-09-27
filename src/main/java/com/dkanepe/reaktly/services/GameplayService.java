@@ -49,7 +49,6 @@ public class GameplayService {
             NotEnoughGames, GameAlreadyStarted {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
-        Hibernate.initialize(room);
         if (room.getStatus() != Room.Status.WAITING) {
             throw new GameAlreadyStarted("Cannot start the game because it has already started!");
         }
@@ -70,12 +69,12 @@ public class GameplayService {
     public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
             , NotEnoughGames, GameAlreadyStarted {
         Player player = self.test(headerAccessor);
-        perfectClickerService.startGame(player);
-//        switch (game.getType()) {
-//            case PERFECT_CLICKER:
-//                perfectClickerService.startGame(player);
-//                break;
-//        }
+        Game.GameType gameType = player.getRoom().getCurrentGame().getType();
+        switch (gameType) {
+            case PERFECT_CLICKER:
+                perfectClickerService.startGame(player);
+                break;
+        }
 
     }
 

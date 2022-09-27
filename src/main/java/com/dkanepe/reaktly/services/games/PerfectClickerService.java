@@ -7,24 +7,24 @@ import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.Scoreboard;
 import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
-import com.dkanepe.reaktly.models.games.PerfectClicker.Clicks;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
+import com.dkanepe.reaktly.models.games.PerfectClicker.GameStatePerfectClicker;
 import com.dkanepe.reaktly.repositories.GameRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.PlayerService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import javax.persistence.EntityManager;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -94,17 +94,26 @@ public class PerfectClickerService {
 
         PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
 
-        int clicks = game.getClicks().getOrDefault(player, 0);
-        game.getClicks().put(player, clicks + 1);
+        // add 1 click to the player's state
+        GameStatePerfectClicker state = game.getState().stream()
+                .filter(s -> s.getPlayer().equals(player))
+                .findFirst()
+                .orElseGet(() -> {
+                    GameStatePerfectClicker newState = new GameStatePerfectClicker(player);
+                    game.getState().add(newState);
+                    return newState;
+                });
+        state.setClicks(state.getClicks() + 1);
+        state.setLastClick(LocalDateTime.now());
         gameRepository.save(game);
 
         return addScoreboardPoints(player, 1);
     }
 
     public void startGame(Player player) {
-        // execute endGame after 3 seconds
+        // execute endGame after 5 seconds
         try {
-            Thread.sleep(3 * 1000);
+            Thread.sleep(5 * 1000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -113,6 +122,7 @@ public class PerfectClickerService {
 
 
     public void endCurrentGame(Room room) {
+        // TODO: find a better way. Not using the below line results in errors
         room = roomRepository.findById(room.getId()).get();
         // print if method is transactional
         Game game = room.getCurrentGame();
@@ -129,10 +139,35 @@ public class PerfectClickerService {
         // TODO: find a better way. Not using the below line results in a LazyInitializationException
         room = entityManager.merge(room);
         PerfectClicker game = (PerfectClicker) room.getCurrentGame();
-         //for every click, add 2 points to the player
-        game.getClicks().forEach((player, clicks) -> {
-            addScoreboardPoints(player, clicks * 2);
-        });
+        // Distribute points to players:
+        // Players that clicked over the target get 0 points.
+        // Remaining players get 100 points * (their clicks performed / target clicks)
+        // First player gets 100 points extra. Second player gets 50 points extra. Third player gets 25 points extra.
+        // if players have the same amount of clicks, winner is the one who's last click was earlier
+        List<GameStatePerfectClicker> state = game.getState().stream()
+                .filter(s -> s.getClicks() <= game.getTargetClicks())
+                .sorted((s1, s2) -> {
+                    if (s1.getClicks() == s2.getClicks()) {
+                        return s2.getLastClick().compareTo(s1.getLastClick());
+                    }
+                    return s1.getClicks() - s2.getClicks();
+                })
+                .collect(Collectors.toList());
+        int maxPoints = 100;
+        for (int i = 0; i < state.size(); i++) {
+            GameStatePerfectClicker s = state.get(i);
+            // Calculate points
+            int points = (int) (maxPoints * (s.getClicks() / (double) game.getTargetClicks()));
+            // add bonus points
+            if (i == 0) {
+                points += 100;
+            } else if (i == 1) {
+                points += 50;
+            } else if (i == 2) {
+                points += 25;
+            }
+            addScoreboardPoints(s.getPlayer(), points);
+        }
 
         template.convertAndSend(END_GAME, room.getScoreboard());
     }

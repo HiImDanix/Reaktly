@@ -7,18 +7,27 @@ import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @ToString
-public class Clicks {
+public class GameStatePerfectClicker {
+
+    public GameStatePerfectClicker(Player player) {
+        this.player = player;
+        this.clicks = 0;
+    }
+
     @Id
     @GeneratedValue
     private Long id;
 
-    @ManyToOne
+    @OneToOne
     private Player player;
 
     private int clicks;
+
+    private LocalDateTime lastClick;
 
 
 }
