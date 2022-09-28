@@ -70,7 +70,12 @@ function joinGameSuccess() {
 
 function gameClick() {
 
+
     if(stompClient) {
+        const clicks = document.querySelector('#clicks');
+        // parse int or default to 0
+        const currentClicks = parseInt(clicks.innerHTML) || 0;
+        clicks.textContent = currentClicks + 1;
 
         stompClient.send("/app/gameplay/PerfectClicker.click");
     }
@@ -98,17 +103,20 @@ function onGameEndReceived(payload) {
 }
 
 function onGameClickReceived(payload) {
+
+    // Do nothing, for now.
+
     // Example message from the server:
     // {"player_id":5,"time_clicked":"2022-09-27T22:54:15.8209354"}
     // update #clicks element (increment by 1). Note: it might be empty
-    var click = JSON.parse(payload.body);
-
-    if (click.player_id == playerID) {
-        var clicks = document.querySelector('#clicks');
-        // parse int or default to 0
-        var currentClicks = parseInt(clicks.innerHTML) || 0;
-        clicks.textContent = currentClicks + 1;
-    }
+    // var click = JSON.parse(payload.body);
+    //
+    // if (click.player_id == playerID) {
+    //     var clicks = document.querySelector('#clicks');
+    //     // parse int or default to 0
+    //     var currentClicks = parseInt(clicks.innerHTML) || 0;
+    //     clicks.textContent = currentClicks + 1;
+    // }
 
 
 }
