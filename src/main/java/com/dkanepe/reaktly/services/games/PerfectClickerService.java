@@ -150,9 +150,9 @@ public class PerfectClickerService {
                 .filter(s -> s.getClicks() <= game.getTargetClicks())
                 .sorted((s1, s2) -> {
                     if (s1.getClicks() == s2.getClicks()) {
-                        return s2.getLastClick().compareTo(s1.getLastClick());
+                        return s1.getLastClick().compareTo(s2.getLastClick());
                     }
-                    return s1.getClicks() - s2.getClicks();
+                    return s2.getClicks() - s1.getClicks();
                 })
                 .collect(Collectors.toList());
         int maxPoints = 100;
