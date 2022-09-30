@@ -9,6 +9,8 @@ import com.dkanepe.reaktly.dto.RoomDTO;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
+import com.dkanepe.reaktly.models.games.Game;
+import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +75,9 @@ public class RoomService {
         player = playerRepository.save(player);
         System.out.println(player.getSession());
         Room room = new Room(player);
+        // add default game, for now.
+        Game game = new PerfectClicker(5);
+        room.getGames().add(game);
         roomRepository.save(room);
         return mapper.playerToPersonalPlayerDTO(player);
     }
