@@ -22,14 +22,15 @@ public class CommunicationService {
         This service allows you to communicate with players in a room.
      */
     public void sendToRoom(RoomActions actionName, long roomID, Object dto) {
-        messaging.convertAndSend("topic/room/" + roomID + "/" + actionName, dto);
+        messaging.convertAndSend("/topic/room/" + roomID + "/" + actionName, dto);
     }
 
     /*
         This service allows you to communicate with players playing a specific game.
      */
     public void sendToGame(GameplayActions actionName, long roomID, Object dto) {
-        String dest = String.format("topic/room/%d/gameplay/%s", roomID, actionName);
+        String dest = String.format("/topic/room/%d/gameplay/%s", roomID, actionName);
+        System.out.println(dest);
         messaging.convertAndSend(dest, dto);
     }
 

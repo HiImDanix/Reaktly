@@ -112,7 +112,7 @@ public class PerfectClickerService {
 
         // inform players of the click
         ClickDTO dto = new ClickDTO(state.getPlayer(), state.getLastClick());
-        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICK, room.getId(), dto);
+        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICK, room.getID(), dto);
     }
 
     public void startGame(Player player) {
@@ -128,14 +128,14 @@ public class PerfectClickerService {
 
     public void endCurrentGame(Room room) {
         // TODO: find a better way. Not using the below line results in errors
-        room = roomRepository.findById(room.getId()).get();
+        room = roomRepository.findById(room.getID()).get();
         // print if method is transactional
         Game game = room.getCurrentGame();
         game.setFinished(true);
         gameRepository.save(game);
         System.out.println("Game finished");
         self.distributePoints(room);
-        messaging.sendToGame(GameplayActions.END_GAME, room.getId(), room.getScoreboard());
+        messaging.sendToGame(GameplayActions.END_GAME, room.getID(), room.getScoreboard());
     }
 
     @Transactional

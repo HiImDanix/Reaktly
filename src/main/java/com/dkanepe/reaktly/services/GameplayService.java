@@ -45,7 +45,7 @@ public class GameplayService {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
         if (room.getStatus() != Room.Status.LOBBY) {
-            throw new GameAlreadyStarted("Cannot start the game because it has already started!");
+            throw new GameAlreadyStarted("Cannot start the game because it already in progress or finished");
         }
         if (room.getPlayers().size() < 1) {
             throw new NotEnoughPlayers("Not enough players to start the game!");

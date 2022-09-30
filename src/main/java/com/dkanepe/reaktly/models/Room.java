@@ -28,7 +28,7 @@ public class Room {
 
     @Id
     @GeneratedValue
-    private long id;
+    private long ID;
 
     @Column(nullable = false, unique = true)
     private String code;

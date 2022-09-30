@@ -5,12 +5,14 @@ import com.dkanepe.reaktly.actions.RoomActions;
 import com.dkanepe.reaktly.dto.CreateRoomRequest;
 import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
+import com.dkanepe.reaktly.dto.RoomDTO;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +62,7 @@ public class RoomService {
         room.get().addPlayer(player);
         roomRepository.save(room.get());
 
-        messaging.sendToRoom(RoomActions.PLAYER_JOINED, room.get().getId(), mapper.playerToPlayerDTO(player));
+        messaging.sendToRoom(RoomActions.PLAYER_JOINED, room.get().getID(), mapper.playerToPlayerDTO(player));
         return mapper.playerToPersonalPlayerDTO(player);
 
     }
@@ -73,5 +75,11 @@ public class RoomService {
         Room room = new Room(player);
         roomRepository.save(room);
         return mapper.playerToPersonalPlayerDTO(player);
+    }
+
+    public RoomDTO getRoom(SimpMessageHeaderAccessor headers) {
+        Optional<Player> player = playerRepository.findBySession(headers.getUser().getName());
+        Room room = player.get().getRoom();
+        return mapper.roomToRoomDTO(room);
     }
 }

@@ -1,13 +1,11 @@
 package com.dkanepe.reaktly.controllers;
 
 import com.dkanepe.reaktly.MapStructMapper;
-import com.dkanepe.reaktly.dto.CreateRoomRequest;
-import com.dkanepe.reaktly.dto.JoinRoomRequest;
-import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
-import com.dkanepe.reaktly.dto.PlayerDTO;
+import com.dkanepe.reaktly.dto.*;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
+import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.Scoreboard;
 import com.dkanepe.reaktly.services.PlayerService;
 import com.dkanepe.reaktly.services.RoomService;
@@ -18,12 +16,13 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Objects;
 
-@RestController
+@Controller
 public class RoomController {
 
     private final RoomService roomService;
@@ -43,7 +42,7 @@ public class RoomController {
      * @return HttpStatus.OK if valid, HttpStatus.NOT_FOUND if not
      */
     @GetMapping("/player/session/{session}")
-    public ResponseEntity<PlayerDTO> getPlayerBySession(@PathVariable String session) {
+    public @ResponseBody ResponseEntity<PlayerDTO> getPlayerBySession(@PathVariable String session) {
         try {
             PlayerDTO playerDTO = playerService.findBySessionOrThrow(session);
             return new ResponseEntity(playerDTO, HttpStatus.OK);
@@ -58,7 +57,7 @@ public class RoomController {
      * @throws InvalidRoomCode if the entered room code is invalid
      */
     @PostMapping("join")
-    public PersonalPlayerDTO joinRoom(@RequestBody JoinRoomRequest request) throws InvalidRoomCode {
+    public @ResponseBody PersonalPlayerDTO joinRoom(@RequestBody JoinRoomRequest request) throws InvalidRoomCode {
         return roomService.joinRoom(request);
     }
 
@@ -67,7 +66,16 @@ public class RoomController {
      * @return The player (with session)
      */
     @PostMapping("create")
-    public PersonalPlayerDTO createRoom(@RequestBody CreateRoomRequest request) {
+    public @ResponseBody PersonalPlayerDTO createRoom(@RequestBody CreateRoomRequest request) {
         return roomService.createRoom(request);
+    }
+
+    /**
+     * Get room and send back to user using queue
+     */
+    @MessageMapping("room")
+    @SendToUser("/queue/room")
+    public RoomDTO getRoom(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+        return roomService.getRoom(headerAccessor);
     }
 }

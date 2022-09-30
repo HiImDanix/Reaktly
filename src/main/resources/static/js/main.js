@@ -4,7 +4,7 @@ const ScoreboardArea = document.querySelector('#scoreboard');
 let token = null;
 let name = null;
 let playerID = null;
-let roomID = null;
+let roomID = 1;
 
 
 function connect(event) {
@@ -12,13 +12,20 @@ function connect(event) {
     stompClient = Stomp.over(socket);
 
     stompClient.connect({Authorization:token}, onConnected, onError);
-    event.preventDefault();
 }
 
 function onConnected() {
+    stompClient.subscribe("/user/queue/room", (payload) => {
+        const room = JSON.parse(payload.body);
+        roomID = room.id;
+        initializeRoom();
+    });
+    stompClient.send("/app/room");
+}
+
+function initializeRoom() {
     const ROOM_PREFIX = '/topic/room/' + roomID + '/';
     const GAMEPLAY_PREFIX = '/topic/room/' + roomID + '/gameplay/';
-    // Subscribe to the Public Topic
     stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED');
     stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', onGameClickReceived);
     stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', onGameEndReceived);

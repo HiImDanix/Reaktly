@@ -45,5 +45,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         config.setPathMatcher(new AntPathMatcher("."));
         config.enableSimpleBroker("/topic/", "/queue/");
         config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
     }
 }
