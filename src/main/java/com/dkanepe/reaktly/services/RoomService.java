@@ -1,6 +1,7 @@
 package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.dto.CreateRoomRequest;
 import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
@@ -30,12 +31,11 @@ public class RoomService {
     }
 
     /**
-     * Finds a room by its code
+     * Find a room by its code
      * @param code Room code
-     * @throws InvalidRoomCode if room with given code does not exist
-     * @return Room
+     * @return The room
      */
-    public Optional<Room> findRoomByCode(String code) throws InvalidRoomCode {
+    private Optional<Room> findRoomByCode(String code){
         return roomRepository.findByCode(code);
     }
 
@@ -56,5 +56,15 @@ public class RoomService {
         } else {
             throw new InvalidRoomCode("Room with code " + joinRoomRequest.getRoomCode() + " does not exist");
         }
+    }
+
+    @Transactional
+    public PersonalPlayerDTO createRoom(CreateRoomRequest request) {
+        Player player = new Player(request.getPlayer().getName());
+        player = playerRepository.save(player);
+        System.out.println(player.getSession());
+        Room room = new Room(player);
+        roomRepository.save(room);
+        return mapper.playerToPersonalPlayerDTO(player);
     }
 }

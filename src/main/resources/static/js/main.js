@@ -23,7 +23,7 @@ function onConnected() {
     document.querySelector('#gameBoard').classList.remove('hidden');
 }
 
-function joinGame() {
+function joinRoom() {
     event.preventDefault();
     if (token != null) {
         alert("You are already in game");
@@ -35,6 +35,39 @@ function joinGame() {
     let post = JSON.stringify({player: {name: name}, room_code: roomCode});
 
     const url = '/join';
+    let xhr = new XMLHttpRequest()
+
+    xhr.open('POST', url, true)
+    xhr.setRequestHeader('Content-type', 'application/json; charset=UTF-8')
+    xhr.send(post);
+
+    xhr.onload = function () {
+        if(xhr.status === 200) {
+            // get the token from the response's 'token' parameter
+            responseBody = JSON.parse(xhr.response);
+            token = responseBody.session;
+            playerID = responseBody.id;
+            // put token in local storage
+            localStorage.setItem('token', token);
+            localStorage.setItem('name', name);
+            joinGameSuccess();
+        } else {
+            alert('Error: ' + xhr.status);
+        }
+    }
+}
+
+function createRoom() {
+    event.preventDefault();
+    if (token != null) {
+        alert("You are already in game");
+        return;
+    }
+    name = document.querySelector('#player_name_create').value.trim();
+
+    let post = JSON.stringify({player: {name: name}});
+
+    const url = '/create';
     let xhr = new XMLHttpRequest()
 
     xhr.open('POST', url, true)

@@ -21,6 +21,11 @@ public class Room {
         LOBBY, IN_PROGRESS, FINISHED
     }
 
+    public Room(Player player) {
+        this.host = player;
+        this.addPlayer(player);
+    }
+
     @Id
     @GeneratedValue
     private long id;
@@ -32,6 +37,9 @@ public class Room {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "room")
     private Set<Player> players = new HashSet<>();
+
+    @OneToOne
+    private Player host;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private Scoreboard scoreboard = new Scoreboard();

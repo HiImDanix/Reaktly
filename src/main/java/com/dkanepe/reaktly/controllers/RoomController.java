@@ -1,6 +1,7 @@
 package com.dkanepe.reaktly.controllers;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.dto.CreateRoomRequest;
 import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
 import com.dkanepe.reaktly.dto.PlayerDTO;
@@ -36,6 +37,11 @@ public class RoomController {
         this.playerService = playerService;
     }
 
+    /**
+     * Check if a session is (still) valid (i.e. in case of reconnecting)
+     * @param session
+     * @return HttpStatus.OK if valid, HttpStatus.NOT_FOUND if not
+     */
     @GetMapping("/player/session/{session}")
     public ResponseEntity<PlayerDTO> getPlayerBySession(@PathVariable String session) {
         try {
@@ -46,8 +52,22 @@ public class RoomController {
         }
     }
 
+    /**
+     * Join a room
+     * @return The player (with session)
+     * @throws InvalidRoomCode if the entered room code is invalid
+     */
     @PostMapping("join")
     public PersonalPlayerDTO joinRoom(@RequestBody JoinRoomRequest request) throws InvalidRoomCode {
         return roomService.joinRoom(request);
+    }
+
+    /**
+     * Create a room
+     * @return The player (with session)
+     */
+    @PostMapping("create")
+    public PersonalPlayerDTO createRoom(@RequestBody CreateRoomRequest request) {
+        return roomService.createRoom(request);
     }
 }
