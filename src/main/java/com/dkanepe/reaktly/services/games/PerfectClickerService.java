@@ -1,6 +1,7 @@
 package com.dkanepe.reaktly.services.games;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
@@ -13,11 +14,11 @@ import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.repositories.GameRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
+import com.dkanepe.reaktly.services.CommunicationService;
 import com.dkanepe.reaktly.services.PlayerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,19 +40,19 @@ public class PerfectClickerService {
     private final GameRepository gameRepository;
     private final PerfectClickerService self;
 
-    private SimpMessagingTemplate template;
+    private CommunicationService messaging;
     private final RoomRepository roomRepository;
     private final EntityManager entityManager;
 
     public PerfectClickerService(MapStructMapper mapper, ScoreboardRepository scoreboardRepository,
                                  PlayerService playerService, GameRepository gameRepository,
-                                 SimpMessagingTemplate template, @Lazy PerfectClickerService self,
+                                 CommunicationService messaging, @Lazy PerfectClickerService self,
                                  RoomRepository roomRepository, EntityManager entityManager) {
         this.scoreboardRepository = scoreboardRepository;
         this.mapper = mapper;
         this.playerService = playerService;
         this.gameRepository = gameRepository;
-        this.template = template;
+        this.messaging = messaging;
         this.self = self;
         this.roomRepository = roomRepository;
         this.entityManager = entityManager;
@@ -81,7 +82,7 @@ public class PerfectClickerService {
     }
 
     @Transactional
-    public ClickDTO click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public void click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
         if (room.getStatus() != Room.Status.IN_PROGRESS) {
@@ -109,7 +110,9 @@ public class PerfectClickerService {
         state.setLastClick(LocalDateTime.now());
         gameRepository.save(game);
 
-        return new ClickDTO(state.getPlayer(), state.getLastClick());
+        // inform players of the click
+        ClickDTO dto = new ClickDTO(state.getPlayer(), state.getLastClick());
+        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICK, room.getId(), dto);
     }
 
     public void startGame(Player player) {
@@ -132,8 +135,7 @@ public class PerfectClickerService {
         gameRepository.save(game);
         System.out.println("Game finished");
         self.distributePoints(room);
-
-
+        messaging.sendToGame(GameplayActions.END_GAME, room.getId(), room.getScoreboard());
     }
 
     @Transactional
@@ -170,8 +172,6 @@ public class PerfectClickerService {
             }
             addScoreboardPoints(s.getPlayer(), points);
         }
-
-        template.convertAndSend(END_GAME, room.getScoreboard());
     }
 
 }

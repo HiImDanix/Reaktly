@@ -1,6 +1,7 @@
 package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.actions.RoomActions;
 import com.dkanepe.reaktly.dto.CreateRoomRequest;
 import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
@@ -22,12 +23,14 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
+    private final CommunicationService messaging;
 
     @Autowired
-    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper) {
+    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper, CommunicationService messaging) {
         this.roomRepository = roomRepository;
         this.playerRepository = playerRepository;
         this.mapper = mapper;
+        this.messaging = messaging;
     }
 
     /**
@@ -48,14 +51,18 @@ public class RoomService {
     @Transactional
     public PersonalPlayerDTO joinRoom(JoinRoomRequest joinRoomRequest) throws InvalidRoomCode {
         Optional<Room> room = findRoomByCode(joinRoomRequest.getRoomCode());
-        if (room.isPresent()) {
-            Player player = playerRepository.save(new Player(joinRoomRequest.getPlayer().getName()));
-            room.get().addPlayer(player);
-            roomRepository.save(room.get());
-            return mapper.playerToPersonalPlayerDTO(player);
-        } else {
+
+        if (!room.isPresent()) {
             throw new InvalidRoomCode("Room with code " + joinRoomRequest.getRoomCode() + " does not exist");
         }
+
+        Player player = playerRepository.save(new Player(joinRoomRequest.getPlayer().getName()));
+        room.get().addPlayer(player);
+        roomRepository.save(room.get());
+
+        messaging.sendToRoom(RoomActions.PLAYER_JOINED, room.get().getId(), mapper.playerToPlayerDTO(player));
+        return mapper.playerToPersonalPlayerDTO(player);
+
     }
 
     @Transactional

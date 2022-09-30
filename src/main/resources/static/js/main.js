@@ -4,6 +4,7 @@ const ScoreboardArea = document.querySelector('#scoreboard');
 let token = null;
 let name = null;
 let playerID = null;
+let roomID = null;
 
 
 function connect(event) {
@@ -15,10 +16,12 @@ function connect(event) {
 }
 
 function onConnected() {
+    const ROOM_PREFIX = '/topic/room/' + roomID + '/';
+    const GAMEPLAY_PREFIX = '/topic/room/' + roomID + '/gameplay/';
     // Subscribe to the Public Topic
-    stompClient.subscribe('/topic/newPlayer');
-    stompClient.subscribe('/topic/click', onGameClickReceived);
-    stompClient.subscribe('/topic/game/end', onGameEndReceived);
+    stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED');
+    stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', onGameClickReceived);
+    stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', onGameEndReceived);
 
     document.querySelector('#gameBoard').classList.remove('hidden');
 }
@@ -136,7 +139,7 @@ function onGameClickReceived(payload) {
     // update #clicks element (increment by 1). Note: it might be empty
     var click = JSON.parse(payload.body);
 
-    if (click.player_id == playerID) {
+    if (click.player_id === playerID) {
         var clicks = document.querySelector('#clicks');
         // parse int or default to 0
         var currentClicks = parseInt(clicks.innerHTML) || 0;

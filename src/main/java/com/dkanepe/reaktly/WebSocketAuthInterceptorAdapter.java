@@ -44,9 +44,6 @@ public class WebSocketAuthInterceptorAdapter implements ChannelInterceptor {
             }
             // Save player session ID in header accessor session attributes
             accessor.getSessionAttributes().put(SessionParameters.PLAYER_SESSION.toString(), player.get().getSession());
-
-
-
         }
         return message;
     }
