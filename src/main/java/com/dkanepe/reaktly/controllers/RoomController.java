@@ -71,7 +71,7 @@ public class RoomController {
     }
 
     /**
-     * Get room and send back to user using queue
+     * Get room info 
      */
     @MessageMapping("room")
     @SendToUser("/queue/room")

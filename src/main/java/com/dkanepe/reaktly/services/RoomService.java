@@ -7,6 +7,7 @@ import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
 import com.dkanepe.reaktly.dto.RoomDTO;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
+import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.games.Game;
@@ -28,13 +29,15 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final PlayerRepository playerRepository;
     private final CommunicationService messaging;
+    private final PlayerService playerService;
 
     @Autowired
-    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper, CommunicationService messaging) {
+    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper, CommunicationService messaging, PlayerService playerService) {
         this.roomRepository = roomRepository;
         this.playerRepository = playerRepository;
         this.mapper = mapper;
         this.messaging = messaging;
+        this.playerService = playerService;
     }
 
     /**
@@ -82,9 +85,9 @@ public class RoomService {
         return mapper.playerToPersonalPlayerDTO(player);
     }
 
-    public RoomDTO getRoom(SimpMessageHeaderAccessor headers) {
-        Optional<Player> player = playerRepository.findBySession(headers.getUser().getName());
-        Room room = player.get().getRoom();
+    public RoomDTO getRoom(SimpMessageHeaderAccessor headers) throws InvalidSession {
+        Player player = playerService.findBySessionOrThrowNonDTO(headers);
+        Room room = player.getRoom();
         return mapper.roomToRoomDTO(room);
     }
 }
