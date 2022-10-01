@@ -1,9 +1,6 @@
 package com.dkanepe.reaktly.controllers;
 
-import com.dkanepe.reaktly.exceptions.GameAlreadyStarted;
-import com.dkanepe.reaktly.exceptions.InvalidSession;
-import com.dkanepe.reaktly.exceptions.NotEnoughGames;
-import com.dkanepe.reaktly.exceptions.NotEnoughPlayers;
+import com.dkanepe.reaktly.exceptions.*;
 import com.dkanepe.reaktly.services.GameplayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -22,7 +19,7 @@ public class GameplayController {
 
     @MessageMapping("start")
     public void start(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers,
-            NotEnoughGames, GameAlreadyStarted {
+            NotEnoughGames, GameAlreadyStarted, NotAHost {
         gameplayService.startGame(headerAccessor);
     }
 

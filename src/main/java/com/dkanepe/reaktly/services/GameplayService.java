@@ -3,10 +3,7 @@ package com.dkanepe.reaktly.services;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.GameStartedDTO;
-import com.dkanepe.reaktly.exceptions.GameAlreadyStarted;
-import com.dkanepe.reaktly.exceptions.InvalidSession;
-import com.dkanepe.reaktly.exceptions.NotEnoughGames;
-import com.dkanepe.reaktly.exceptions.NotEnoughPlayers;
+import com.dkanepe.reaktly.exceptions.*;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.games.Game;
@@ -52,7 +49,7 @@ public class GameplayService {
     }
 
     public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
-            , NotEnoughGames, GameAlreadyStarted {
+            , NotEnoughGames, GameAlreadyStarted, NotAHost {
         Player player = self.validateGameStart(headerAccessor);
         self.prepareRoomForFirstGame(player.getRoom());
         roomService.updateRoomStatus(player.getRoom(), Room.Status.ABOUT_TO_START);
@@ -63,7 +60,7 @@ public class GameplayService {
 
         // sleep until gameStartedDTO.getStartTime()
         long sleepTime = ChronoUnit.MILLIS.between(LocalDateTime.now(), gameStartedDTO.getStartTime());
-        System.out.println("sleeping for " + sleepTime + " miliseconds");
+
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
@@ -83,9 +80,14 @@ public class GameplayService {
 
     @Transactional // Using transactional because hibernate session is closed for some reason.
     public Player validateGameStart(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers,
-            NotEnoughGames, GameAlreadyStarted {
+            NotEnoughGames, GameAlreadyStarted, NotAHost {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
+
+        // not a host
+        if (!room.getHost().equals(player)) {
+            throw new NotAHost("Only the host can start the game");
+        }
 
         if (room.getStatus() != Room.Status.LOBBY) {
             throw new GameAlreadyStarted("Cannot start the game because it already in progress or finished");
