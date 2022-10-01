@@ -2,7 +2,7 @@ package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
-import com.dkanepe.reaktly.dto.GameStartedDTO;
+import com.dkanepe.reaktly.dto.GameStartDTO;
 import com.dkanepe.reaktly.exceptions.*;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
@@ -55,11 +55,11 @@ public class GameplayService {
         roomService.updateRoomStatus(player.getRoom(), Room.Status.ABOUT_TO_START);
 
         // Send game about to start message to all players in the room
-        GameStartedDTO gameStartedDTO = mapper.roomToGameStartedDTO(player.getRoom());
-        messaging.sendToGame(GameplayActions.GAME_STARTED, player.getRoom().getID(), gameStartedDTO);
+        GameStartDTO gameStartDTO = mapper.roomToGameStartedDTO(player.getRoom());
+        messaging.sendToGame(GameplayActions.GAME_STARTED, player.getRoom().getID(), gameStartDTO);
 
         // sleep until gameStartedDTO.getStartTime()
-        long sleepTime = ChronoUnit.MILLIS.between(LocalDateTime.now(), gameStartedDTO.getStartTime());
+        long sleepTime = ChronoUnit.MILLIS.between(LocalDateTime.now(), gameStartDTO.getStartTime());
 
         try {
             Thread.sleep(sleepTime);

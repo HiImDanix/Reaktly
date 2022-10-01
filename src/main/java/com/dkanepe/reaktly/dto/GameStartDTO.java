@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
-public class GameStartedDTO {
+public class GameStartDTO {
     private GameDTO currentGame;
     private List<GameDTO> games;
     private LocalDateTime startTime;
 
-    public GameStartedDTO(GameDTO currentGame, List<GameDTO> games, LocalDateTime startTime) {
+    public GameStartDTO(GameDTO currentGame, List<GameDTO> games, LocalDateTime startTime) {
         this.currentGame = currentGame;
         this.games = games;
         this.startTime = startTime;

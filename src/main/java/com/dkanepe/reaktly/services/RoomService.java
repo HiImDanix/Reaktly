@@ -85,6 +85,7 @@ public class RoomService {
         return mapper.playerToPersonalPlayerDTO(player);
     }
 
+    @Transactional
     public RoomDTO getRoom(SimpMessageHeaderAccessor headers) throws InvalidSession {
         Player player = playerService.findBySessionOrThrowNonDTO(headers);
         Room room = player.getRoom();

@@ -21,18 +21,6 @@ public class DataLoader implements ApplicationRunner {
 
     public void run(ApplicationArguments args) {
 
-        Room room1 = new Room();
-
-        // todo: try saving with same name, make custom exception to catch
-        try {
-            roomRepository.save(room1);
-            room1.setCode("password");
-            Game game1 = new PerfectClicker(5);
-            room1.getGames().add(game1);
-            roomRepository.save(room1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
     }
 }

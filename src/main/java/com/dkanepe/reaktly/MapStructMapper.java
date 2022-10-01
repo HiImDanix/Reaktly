@@ -18,12 +18,12 @@ public interface MapStructMapper {
     RoomDTO roomToRoomDTO(Room room);
     Room roomDTOToRoom(RoomDTO roomDTO);
 
-    GameStartedDTO roomToGameStartedDTO(Room room);
+    GameStartDTO roomToGameStartedDTO(Room room);
     @AfterMapping
-    default void afterMappingRoomToGameStartedDTO(Room room, @MappingTarget GameStartedDTO gameStartedDTO) {
+    default void afterMappingRoomToGameStartedDTO(Room room, @MappingTarget GameStartDTO gameStartDTO) {
         // TODO: make this configurable
         // 5 seconds from now
-        gameStartedDTO.setStartTime(LocalDateTime.now().plusSeconds(5));
+        gameStartDTO.setStartTime(LocalDateTime.now().plusSeconds(5));
     }
 
 
