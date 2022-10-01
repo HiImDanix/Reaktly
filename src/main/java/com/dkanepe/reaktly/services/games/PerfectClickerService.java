@@ -3,7 +3,10 @@ package com.dkanepe.reaktly.services.games;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
+import com.dkanepe.reaktly.exceptions.GameFinished;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
+import com.dkanepe.reaktly.exceptions.RoomNotInProgress;
+import com.dkanepe.reaktly.exceptions.WrongGame;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.Scoreboard;
@@ -82,17 +85,19 @@ public class PerfectClickerService {
     }
 
     @Transactional
-    public void click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
+    public void click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, RoomNotInProgress, WrongGame, GameFinished {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
+
+        // validation
         if (room.getStatus() != Room.Status.IN_PROGRESS) {
-            throw new InvalidSession("Game is not in progress");
+            throw new RoomNotInProgress("Game is not in progress");
         }
         if (room.getCurrentGame().getType() != Game.GameType.PERFECT_CLICKER) {
-            throw new InvalidSession("Game is not Perfect Clicker");
+            throw new WrongGame("Game is not Perfect Clicker");
         }
         if (room.getCurrentGame().isFinished()) {
-            throw new InvalidSession("This particular game is already finished");
+            throw new GameFinished("This particular game is already finished");
         }
 
         PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
