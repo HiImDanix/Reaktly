@@ -30,7 +30,6 @@ public class CommunicationService {
      */
     public void sendToGame(GameplayActions actionName, long roomID, Object dto) {
         String dest = String.format("/topic/room/%d/gameplay/%s", roomID, actionName);
-        System.out.println(dest);
         messaging.convertAndSend(dest, dto);
     }
 

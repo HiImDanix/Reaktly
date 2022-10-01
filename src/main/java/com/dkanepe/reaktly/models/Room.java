@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Getter @Setter @NoArgsConstructor @ToString
 public class Room {
     public enum Status {
-        LOBBY, IN_PROGRESS, FINISHED
+        LOBBY, ABOUT_TO_START, IN_PROGRESS, FINISHED
     }
 
     public Room(Player player) {

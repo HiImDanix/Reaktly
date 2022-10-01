@@ -1,6 +1,8 @@
 package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
+import com.dkanepe.reaktly.actions.GameplayActions;
+import com.dkanepe.reaktly.dto.GameStartedDTO;
 import com.dkanepe.reaktly.exceptions.GameAlreadyStarted;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.exceptions.NotEnoughGames;
@@ -17,6 +19,9 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 // add sl4j logger
 @Slf4j
 @Service
@@ -27,23 +32,61 @@ public class GameplayService {
     private final RoomRepository roomRepository;
     private final PerfectClickerService perfectClickerService;
     private final GameplayService self;
+    private final CommunicationService messaging;
+    private final RoomService roomService;
+
+
 
     public GameplayService(MapStructMapper mapper, ScoreboardRepository scoreboardRepository,
                            PlayerService playerService, RoomRepository roomRepository,
-                           PerfectClickerService perfectClickerService, @Lazy GameplayService self) {
+                           PerfectClickerService perfectClickerService, @Lazy GameplayService self,
+                           CommunicationService messaging, RoomService roomService) {
         this.scoreboardRepository = scoreboardRepository;
         this.mapper = mapper;
         this.playerService = playerService;
         this.roomRepository = roomRepository;
         this.perfectClickerService = perfectClickerService;
         this.self = self;
+        this.messaging = messaging;
+        this.roomService = roomService;
     }
 
-    @Transactional
-    public Player test(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers,
+    public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
+            , NotEnoughGames, GameAlreadyStarted {
+        Player player = self.validateGameStart(headerAccessor);
+        self.prepareRoomForFirstGame(player.getRoom());
+        roomService.updateRoomStatus(player.getRoom(), Room.Status.ABOUT_TO_START);
+
+        // Send game about to start message to all players in the room
+        GameStartedDTO gameStartedDTO = mapper.roomToGameStartedDTO(player.getRoom());
+        messaging.sendToGame(GameplayActions.GAME_STARTED, player.getRoom().getID(), gameStartedDTO);
+
+        // sleep until gameStartedDTO.getStartTime()
+        long sleepTime = ChronoUnit.MILLIS.between(LocalDateTime.now(), gameStartedDTO.getStartTime());
+        System.out.println("sleeping for " + sleepTime + " miliseconds");
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        roomService.updateRoomStatus(player.getRoom(), Room.Status.IN_PROGRESS);
+
+        // Start the first, specific game
+        Game.GameType gameType = player.getRoom().getCurrentGame().getType();
+        switch (gameType) {
+            case PERFECT_CLICKER:
+                perfectClickerService.startGame(player);
+                break;
+        }
+    }
+
+    @Transactional // Using transactional because hibernate session is closed for some reason.
+    public Player validateGameStart(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers,
             NotEnoughGames, GameAlreadyStarted {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
+
         if (room.getStatus() != Room.Status.LOBBY) {
             throw new GameAlreadyStarted("Cannot start the game because it already in progress or finished");
         }
@@ -53,24 +96,18 @@ public class GameplayService {
         if (room.getGames().size() < 1) {
             throw new NotEnoughGames("You can't start playing without adding any mini-games!");
         }
-        Game game = room.getGames().iterator().next();
-        room.setCurrentGame(game);
-        room.getGames().remove(game);
-        room.setStatus(Room.Status.IN_PROGRESS);
-        roomRepository.save(room);
         return player;
     }
 
-    public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
-            , NotEnoughGames, GameAlreadyStarted {
-        Player player = self.test(headerAccessor);
-        Game.GameType gameType = player.getRoom().getCurrentGame().getType();
-        switch (gameType) {
-            case PERFECT_CLICKER:
-                perfectClickerService.startGame(player);
-                break;
-        }
-
+    /*
+        set status of room to IN_PROGRESS and set currentGame to the first game in the list
+     */
+    @Transactional // Using transactional because hibernate session is closed for some reason.
+    public void prepareRoomForFirstGame(Room room) {
+        Game game = room.getGames().iterator().next();
+        room.setCurrentGame(game);
+        room.getGames().remove(game);
     }
+
 
 }

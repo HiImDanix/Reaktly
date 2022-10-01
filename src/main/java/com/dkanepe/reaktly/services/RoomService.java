@@ -90,4 +90,10 @@ public class RoomService {
         Room room = player.getRoom();
         return mapper.roomToRoomDTO(room);
     }
+
+    // Update room status
+    public void updateRoomStatus(Room room, Room.Status status) {
+        room.setStatus(status);
+        roomRepository.save(room);
+    }
 }
