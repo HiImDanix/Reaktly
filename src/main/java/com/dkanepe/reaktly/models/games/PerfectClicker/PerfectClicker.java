@@ -9,7 +9,10 @@ import lombok.ToString;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -21,15 +24,21 @@ import java.util.Set;
 public class PerfectClicker extends Game {
 
     private int targetClicks;
+    private int gameDurationMillis;
+    private int instructionsDurationMillis;
+
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GameStatePerfectClicker> state = new HashSet<>();
+    @OrderBy("clicks DESC, lastClick ASC")
+    private List<GameStatePerfectClicker> state = new ArrayList<>();
 
 
 
-    public PerfectClicker(int targetClicks) {
+    public PerfectClicker(int targetClicks, int gameDurationMillis, int instructionsDurationMillis) {
         this.targetClicks = targetClicks;
         super.setType(GameType.PERFECT_CLICKER);
+        this.gameDurationMillis = gameDurationMillis;
+        this.instructionsDurationMillis = instructionsDurationMillis;
     }
 
 }

@@ -3,6 +3,8 @@ package com.dkanepe.reaktly.services.games;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
+import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerDTO;
+import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerGameStateDTO;
 import com.dkanepe.reaktly.exceptions.GameFinished;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.exceptions.RoomNotInProgress;
@@ -20,6 +22,7 @@ import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.CommunicationService;
 import com.dkanepe.reaktly.services.PlayerService;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -121,26 +125,70 @@ public class PerfectClickerService {
     }
 
     public void startGame(Player player) {
-        // execute endGame after 5 seconds
+        // TODO: Refactor the whole mess
+        PerfectClickerDTO dto = mapper.perfectClickerToPerfectClickerDTO((PerfectClicker) player.getRoom().getCurrentGame());
+
+        // Set the game's status to instructions screen
+        PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
+        game.setStatus(Game.GameStatus.INSTRUCTIONS);
+        gameRepository.save(game);
+
+        // Inform users of game start & end
+        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_START, player.getRoom().getID(), dto);
+
+        // Sleep until game starts
         try {
-            Thread.sleep(5 * 1000);
+            Thread.sleep(LocalDateTime.now().until(dto.getStartTime(), ChronoUnit.MILLIS));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // Set game status to in-progress. No need to inform user.
+        player.getRoom().getCurrentGame().setStatus(Game.GameStatus.IN_PROGRESS);
+        gameRepository.save(game);
+
+        try {
+            Thread.sleep(LocalDateTime.now().until(dto.getEndTime(), ChronoUnit.MILLIS));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
+        // Game has ended
         endCurrentGame(player.getRoom());
+        Room room = roomRepository.findById(player.getRoom().getID()).get();
+
+        // print game state
+        self.printGameState(room);
+
+        // Inform users of game end
+//        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_END, room.getID(),
+//                mapper.perfectClickerToPerfectClickerGameStateDTO((PerfectClicker) room.getCurrentGame()));
+
+        // All games have ended
+        // TODO: call when really all games have ended
+        messaging.sendToGame(GameplayActions.END_GAME, player.getRoom().getID(), room.getScoreboard());
+    }
+
+    @Transactional
+    public void printGameState(Room room) {
+        room = roomRepository.findById(room.getID()).get();
+        PerfectClicker game = (PerfectClicker) room.getCurrentGame();
+        List<PerfectClickerGameStateDTO> gameState = mapper.perfectClickerGameStateToDTO(game.getState());
+        System.out.println("Game state:" + gameState);
+        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_END, room.getID(),
+                gameState);
     }
 
 
     public void endCurrentGame(Room room) {
         // TODO: find a better way. Not using the below line results in errors
         room = roomRepository.findById(room.getID()).get();
-        // print if method is transactional
         Game game = room.getCurrentGame();
         game.setFinished(true);
         gameRepository.save(game);
         System.out.println("Game finished");
         self.distributePoints(room);
-        messaging.sendToGame(GameplayActions.END_GAME, room.getID(), room.getScoreboard());
+
     }
 
     @Transactional

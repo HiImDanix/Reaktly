@@ -28,7 +28,9 @@ function initializeRoom() {
     const GAMEPLAY_PREFIX = '/topic/room/' + roomID + '/gameplay/';
     stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED');
     stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', onGameClickReceived);
-    stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', () => alert('Game started!'));
+    stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', () => console.log("The game is about to start"));
+    stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_START', () => console.log("Perfect Clicker game has started"));
+    stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_END', () => console.log("Perfect Clicker game has ended"));
     stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', onGameEndReceived);
 
     document.querySelector('#gameBoard').classList.remove('hidden');

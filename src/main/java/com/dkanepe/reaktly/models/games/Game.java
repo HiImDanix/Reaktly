@@ -12,8 +12,15 @@ import javax.persistence.*;
 @Getter @Setter @NoArgsConstructor @ToString
 public abstract class Game {
 
+    public enum GameStatus {
+        NOT_STARTED,
+        INSTRUCTIONS,
+        IN_PROGRESS,
+        FINISHED
+    }
+
     public enum GameType {
-        PERFECT_CLICKER;
+        PERFECT_CLICKER
     }
 
     @Id
@@ -22,4 +29,9 @@ public abstract class Game {
 
     private GameType type;
     private boolean isFinished = false;
+    private GameStatus status = GameStatus.NOT_STARTED;
+
+    public abstract int getGameDurationMillis();
+    public abstract int getInstructionsDurationMillis();
+
 }
