@@ -1,0 +1,56 @@
+// Global / index page
+
+.bg-dark-lighter {
+	background-color:#2d2c38;
+}
+
+
+.btn {
+	border-radius:16px;
+}
+
+.bg-dark-lighter {
+	background-color:#2d2c38;
+}
+
+.available-games-table {
+	max-width:960px;
+}
+
+#play {
+	margin-bottom: 55px;
+	padding-bottom: 105px;
+}
+
+
+// ** MEDIA QUERIES **
+
+@media (max-width: 579px) {
+	#join-game .btn {
+		width:274px;
+	}
+}
+
+@media (max-width: 576px) {
+	#new-game .btn {
+		width:274px;
+	}
+}
+
+@media (min-width: 577px) {
+	#new-game .btn {
+		width:428px;
+	}
+}
+
+// ** Choose name **
+
+#name-container {
+	margin-top:25vh;
+}
+
+// ** Perfect Clicker game **
+
+.perfectClickerButton {
+	max-width:400px;
+}
