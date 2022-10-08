@@ -1,4 +1,26 @@
+import {useState} from "react";
+import { Link, useNavigate } from 'react-router-dom';
+
+import { ACTION} from "./EnterNamePage";
+
+
 function SectionPlay() {
+
+    const navigate = useNavigate();
+
+    const [roomCode, setRoomCode] = useState("");
+
+    const validateRoomCode = async (e) => {
+        e.preventDefault();
+        const res = await fetch("http://192.168.0.210:8080/room_code/" + roomCode);
+        console.log(res);
+        if (res.status === 200) {
+            navigate("/enter_name", { state: { roomCode: roomCode, action: ACTION.JOIN_ROOM } });
+        } else {
+            alert("Invalid room code");
+        }
+    }
+
     return (
     <header class="bg-dark" id="play">
         <div class="container pt-4 pt-xl-5">
@@ -11,12 +33,23 @@ function SectionPlay() {
                 </div>
                 <div class="col-12 col-lg-10 mx-auto" id="join-game">
                     <form class="d-flex justify-content-center flex-wrap" method="post">
-                        <div class="mb-3"><input class="form-control" type="text" required="" minlength="3" name="code" placeholder="Game Code" /></div>
-                        <div class="mb-3"><button class="btn btn-primary ms-sm-2" type="submit">Join game</button></div>
+                        <div class="mb-3">
+                            <input class="form-control" type="text" required="" minLength="3"
+                                   name="code" placeholder="Game Code" onChange={(e) => setRoomCode(e.target.value)}>
+
+                            </input>
+                        </div>
+                        <div class="mb-3">
+                            <button class="btn btn-primary ms-sm-2" onClick={validateRoomCode}>Join game</button>
+                        </div>
                     </form>
                 </div>
                 <div class="col-12 col-lg-10 mx-auto" id="new-game">
-                    <form class="d-flex justify-content-center flex-wrap" method="post"><button class="btn btn-light" type="submit">New game</button></form>
+                    <form class="d-flex justify-content-center flex-wrap">
+                        <Link to="/enter_name" state={{ action: ACTION.NEW_ROOM }}>
+                            <button class="btn btn-light">New game</button>
+                        </Link>
+                    </form>
                 </div>
             </div>
         </div>

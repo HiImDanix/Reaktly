@@ -8,7 +8,9 @@ import Footer from "./Footer";
 import SectionPlay from "./SectionPlay";
 import Nav from "./Nav";
 
-function MainPage(props){
+
+function MainPage(){
+
     return (
         <>
             <Nav></Nav>
@@ -16,7 +18,7 @@ function MainPage(props){
             <SectionGames></SectionGames>
             <Footer></Footer>
         </>
-    );
+    )
 }
 
 export default MainPage;

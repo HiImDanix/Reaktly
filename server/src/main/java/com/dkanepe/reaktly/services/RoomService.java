@@ -2,7 +2,6 @@ package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.RoomActions;
-import com.dkanepe.reaktly.dto.CreateRoomRequest;
 import com.dkanepe.reaktly.dto.JoinRoomRequest;
 import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
 import com.dkanepe.reaktly.dto.RoomDTO;
@@ -50,6 +49,13 @@ public class RoomService {
     }
 
     /**
+     * Check if a room code is valid
+     */
+    public boolean isValidRoomCode(String code){
+        return findRoomByCode(code).isPresent();
+    }
+
+    /**
      * If room code is valid, creates a new player and adds it to the room.
      * @param joinRoomRequest Join room request
      * @throws InvalidRoomCode if room with given code does not exist
@@ -59,11 +65,11 @@ public class RoomService {
     public PersonalPlayerDTO joinRoom(JoinRoomRequest joinRoomRequest) throws InvalidRoomCode {
         Optional<Room> room = findRoomByCode(joinRoomRequest.getRoomCode());
 
-        if (!room.isPresent()) {
+        if (room.isEmpty()) {
             throw new InvalidRoomCode("Room with code " + joinRoomRequest.getRoomCode() + " does not exist");
         }
 
-        Player player = playerRepository.save(new Player(joinRoomRequest.getPlayer().getName()));
+        Player player = playerRepository.save(new Player(joinRoomRequest.getName()));
         room.get().addPlayer(player);
         roomRepository.save(room.get());
 
@@ -73,8 +79,8 @@ public class RoomService {
     }
 
     @Transactional
-    public PersonalPlayerDTO createRoom(CreateRoomRequest request) {
-        Player player = new Player(request.getPlayer().getName());
+    public PersonalPlayerDTO createRoom(String name) {
+        Player player = new Player(name);
         player = playerRepository.save(player);
         System.out.println(player.getSession());
         Room room = new Room(player);

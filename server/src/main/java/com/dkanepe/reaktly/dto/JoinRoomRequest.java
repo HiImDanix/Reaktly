@@ -7,7 +7,7 @@ import javax.validation.Valid;
 
 @Data
 public class JoinRoomRequest {
-    private Player player;
+    private String name;
     private String roomCode;
 
 }
