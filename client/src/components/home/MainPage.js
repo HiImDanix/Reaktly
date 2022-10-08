@@ -8,9 +8,7 @@ import Footer from "./Footer";
 import SectionPlay from "./SectionPlay";
 import Nav from "./Nav";
 
-
-function MainPage(){
-
+function MainPage(props){
     return (
         <>
             <Nav></Nav>
