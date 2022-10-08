@@ -1,7 +1,7 @@
 import Nav from "./Nav";
 import { useLocation } from "react-router";
 import {useNavigate} from 'react-router-dom';
-import {useState} from "react";
+import {useState, useEffect} from "react";
 
 const ACTION = {
     JOIN_ROOM: 0,
@@ -19,13 +19,16 @@ function EnterNamePage() {
     // Redirect state
     const location = useLocation();
     const state = location.state;
-    if (state === null) {
-        return navigate("/");
-    }
-    const action = state.action;
-    const roomCode = state.roomCode;
+    const action = state?.action;
+    const roomCode = state?.roomCode;
 
     // Functions
+
+    useEffect(() => {
+        if (state === null) {
+            return navigate("/");
+        }
+    }, []);
 
     async function createGame(e) {
         e.preventDefault();

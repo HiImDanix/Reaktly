@@ -2,21 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a612c380-a8e3-4107-bfe7-031e43697ae5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/home/PlayPage.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/home/MainPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/MainPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/home/Nav.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/Nav.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/home/SectionPlay.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/SectionPlay.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/DataLoader.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/DataLoader.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/controllers/RoomController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/controllers/RoomController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/dto/CreateRoomRequest.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/dto/JoinRoomRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/dto/JoinRoomRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/services/RoomService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/services/RoomService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/home/PlayPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/PlayPage.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,7 +73,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1665141673853</updated>
-      <workItem from="1665141675544" duration="32034000" />
+      <workItem from="1665141675544" duration="32772000" />
     </task>
     <servers />
   </component>
