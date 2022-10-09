@@ -1,5 +1,6 @@
 package com.dkanepe.reaktly;
 
+import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
@@ -21,7 +22,7 @@ public class DataLoader implements ApplicationRunner {
 
     public void run(ApplicationArguments args) {
 
-        Room room = new Room();
+        Room room = new Room(new Player("Dennis"));
         room.getGames().add(new PerfectClicker());
         roomRepository.save(room);
         room.setCode("1234");

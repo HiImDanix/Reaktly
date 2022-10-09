@@ -2,9 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a612c380-a8e3-4107-bfe7-031e43697ae5" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/components/gameplay/PlayPage.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/CorsFilter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/home/PlayPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/PlayPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/home/PlayPage.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSocketConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/WebSocketConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/controllers/RoomController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/controllers/RoomController.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,6 +54,8 @@
       <recent name="D:\github-repositories\Reaktly\client\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\github-repositories\Reaktly\client\src\components\gameplay" />
+      <recent name="D:\github-repositories\Reaktly\client\src\components\home\room" />
       <recent name="D:\github-repositories\Reaktly\client\src" />
       <recent name="D:\github-repositories\Reaktly\client\public" />
       <recent name="D:\github-repositories\Reaktly\client\src\components\home" />
@@ -73,7 +84,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1665141673853</updated>
-      <workItem from="1665141675544" duration="32772000" />
+      <workItem from="1665141675544" duration="41387000" />
     </task>
     <servers />
   </component>

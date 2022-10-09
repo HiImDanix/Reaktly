@@ -2,7 +2,7 @@ import {BrowserRouter, Routes, Route} from "react-router-dom";
 
 import MainPage from './components/home/MainPage';
 import ContactPage from "./components/home/ContactPage";
-import PlayPage from "./components/home/PlayPage";
+import PlayPage from "./components/gameplay/PlayPage";
 import EnterNamePage from "./components/home/EnterNamePage";
 
 function App() {

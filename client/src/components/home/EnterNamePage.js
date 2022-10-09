@@ -28,18 +28,12 @@ function EnterNamePage() {
         if (state === null) {
             return navigate("/");
         }
-    }, []);
+    }, [state, navigate]);
 
     async function createGame(e) {
         e.preventDefault();
-        const res = await fetch("http://192.168.0.210:8080/player", {
+        const res = await fetch("http://192.168.0.210:8080/player?name=" + name, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                name: name,
-            }),
         });
         const data = await res.json();
 

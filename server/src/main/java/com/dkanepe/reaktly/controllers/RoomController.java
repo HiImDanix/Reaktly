@@ -78,7 +78,7 @@ public class RoomController {
      * @return The player (with session)
      */
     @PostMapping("player")
-    public @ResponseBody PersonalPlayerDTO createRoom(@RequestBody String name) {
+    public @ResponseBody PersonalPlayerDTO createRoom(@RequestParam String name) {
         return roomService.createRoom(name);
     }
 
