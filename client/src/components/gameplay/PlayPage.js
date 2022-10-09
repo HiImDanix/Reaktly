@@ -67,7 +67,10 @@ function PlayPage() {
         function subscribe() {
             const ROOM_PREFIX = '/topic/room/' + roomID + '/';
             const GAMEPLAY_PREFIX = '/topic/room/' + roomID + '/gameplay/';
-            stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED');
+            stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED', (payload) => {
+                const player = JSON.parse(payload.body);
+                setPlayers(players => [...players, player]);
+            });
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', () => console.log("Click, Clack!"));
             stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', () => console.log("The game is about to start"));
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_START', () => console.log("Perfect Clicker game has started"));
