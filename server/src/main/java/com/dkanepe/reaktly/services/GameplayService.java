@@ -16,9 +16,6 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-
 // add sl4j logger
 @Slf4j
 @Service
@@ -54,12 +51,14 @@ public class GameplayService {
         self.prepareRoomForFirstGame(player.getRoom());
         roomService.updateRoomStatus(player.getRoom(), Room.Status.ABOUT_TO_START);
 
-        // Send game about to start message to all players in the room
+        // The game is about to start, so we need to update room & send a message to the players
+        Room room = player.getRoom();
+        room.setStartTime(System.currentTimeMillis() + 5000); // get from config
         GameStartDTO gameStartDTO = mapper.roomToGameStartedDTO(player.getRoom());
         messaging.sendToGame(GameplayActions.GAME_STARTED, player.getRoom().getID(), gameStartDTO);
 
         // sleep until gameStartedDTO.getStartTime()
-        long sleepTime = ChronoUnit.MILLIS.between(LocalDateTime.now(), gameStartDTO.getStartTime());
+        long sleepTime = gameStartDTO.getStartTime() - System.currentTimeMillis();
 
         try {
             Thread.sleep(sleepTime);

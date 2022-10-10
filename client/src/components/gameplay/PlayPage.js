@@ -5,12 +5,21 @@ import {useEffect, useState} from "react";
 import * as SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import PlayNav from "./PlayNav";
+import Lobby from "./Lobby";
+import Countdown from "react-countdown";
 
 function PlayPage() {
 
+    // enum for room status
+    const ROOM_STATUS = {
+        LOBBY: 0,
+        ABOUT_TO_START: 1,
+        IN_PROGRESS: 2,
+        FINISHED: 3
+    }
+
     // Init
     const navigate = useNavigate();
-    let stompClient;
 
     // State
     const [hostID, setHostID] = useState(null);
@@ -18,6 +27,8 @@ function PlayPage() {
     const [roomID, setRoomID] = useState(null);
     const [players, setPlayers] = useState([]);
     const [timer, setTimer] = useState(null); // epoch to count down to
+    const [stompClient, setStompClient] = useState(Stomp.over(() => new SockJS('http://localhost:8080/ws')));
+    const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
 
     // Redirect state
     const location = useLocation();
@@ -38,9 +49,6 @@ function PlayPage() {
             return navigate("/");
         }
 
-        // Connect to websockets using factory
-        // var socket = ;
-        stompClient = Stomp.over(() => new SockJS('http://localhost:8080/ws'));
         stompClient.connect({Authorization:session}, onConnected, onError);
 
         function onError(error) {
@@ -49,22 +57,22 @@ function PlayPage() {
 
         function onConnected() {
             setupLobby();
-            subscribe();
         }
 
         function setupLobby() {
             stompClient.subscribe("/user/queue/room", (payload) => {
                 const room = JSON.parse(payload.body);
-                console.log(room);
-                setHostID(room.host.id)
-                setRoomID(room.id)
-                setPlayers(room.players)
-                setRoomCode(room.code)
+                setHostID(room.host.id);
+                setRoomID(room.id);
+                setPlayers(room.players);
+                setRoomCode(room.code);
+                subscribe(room.id);
             });
             stompClient.send("/app/room");
+
         }
 
-        function subscribe() {
+        function subscribe(roomID) {
             const ROOM_PREFIX = '/topic/room/' + roomID + '/';
             const GAMEPLAY_PREFIX = '/topic/room/' + roomID + '/gameplay/';
             stompClient.subscribe(ROOM_PREFIX + 'PLAYER_JOINED', (payload) => {
@@ -72,37 +80,40 @@ function PlayPage() {
                 setPlayers(players => [...players, player]);
             });
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', () => console.log("Click, Clack!"));
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', () => console.log("The game is about to start"));
+            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', (payload) => {
+                const game = JSON.parse(payload.body);
+                setTimer(game.start_time);
+                setRoomStatus(ROOM_STATUS.ABOUT_TO_START);
+            });
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_START', () => console.log("Perfect Clicker game has started"));
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_END', () => console.log("Perfect Clicker game has ended"));
             stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', () => console.log("Game end"));
         }
 
-        // sleep for 3 seconds, then start timer of 5 seconds
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        sleep(3000).then(() => {
-            setTimer(Date.now() + 5000);
-        });
-
 
     }, []);
 
 
+    function startGame() {
+        stompClient.send("/app/gameplay.start");
+    }
+
     return (
-        <>
+        <div className={"min-vh-100 d-flex flex-column"}>
             <PlayNav name={name} timer={timer}></PlayNav>
-            <div className="bg-dark d-flex flex-column min-vh-100">
-                <h1>Playing as {name} with session {session} and roomID: {roomID}</h1>
-                <p>I am a host: {isHost() ? "Yes" : "No"}</p>
-                <p>Room code: {roomCode}</p>
-                <p>Players:</p>
-                <ul>
-                    {players.map((player) => (
-                        <li key={player.id}>{player.name}</li>
-                    ))}
-                </ul>
+            {roomStatus === ROOM_STATUS.LOBBY &&
+            <Lobby name={name} session={session} roomID={roomID} players={players}
+                   roomCode={roomCode} timer={timer} isHost={isHost} startGame={startGame}>
+            </Lobby>
+            }{roomStatus === ROOM_STATUS.ABOUT_TO_START &&
+            <div className={"d-flex flex-fill align-items-center"}>
+                <div className={"container text-center"}>
+                    <h1>Be prepared... The game is about to start!</h1>
+                </div>
             </div>
-        </>
+
+            }
+        </div>
     )
 }
 

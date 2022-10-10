@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
 @Service
 public class PerfectClickerService {
 
-    private final static String END_GAME = "/topic/game/end";
-
     private final ScoreboardRepository scoreboardRepository;
     private final MapStructMapper mapper;
     private final PlayerService playerService;
@@ -98,7 +96,7 @@ public class PerfectClickerService {
             throw new RoomNotInProgress("Game is not in progress");
         }
         if (room.getCurrentGame().getType() != Game.GameType.PERFECT_CLICKER) {
-            throw new WrongGame("Game is not Perfect Clicker");
+            throw new WrongGame("Current game is not Perfect Clicker");
         }
         if (room.getCurrentGame().isFinished()) {
             throw new GameFinished("This particular game is already finished");
@@ -106,7 +104,7 @@ public class PerfectClickerService {
 
         PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
 
-        // add 1 click to the player's state
+        // add 1 click for the player
         GameStatePerfectClicker state = game.getState().stream()
                 .filter(s -> s.getPlayer().equals(player))
                 .findFirst()
@@ -125,7 +123,7 @@ public class PerfectClickerService {
     }
 
     public void startGame(Player player) {
-        // TODO: Refactor the whole mess
+        // TODO: Refactor the whole mess (if there is an exception, the whole game will come to a halt)
         PerfectClickerDTO dto = mapper.perfectClickerToPerfectClickerDTO((PerfectClicker) player.getRoom().getCurrentGame());
 
         // Set the game's status to instructions screen

@@ -23,7 +23,6 @@ function PlayNav(props) {
         navigate("/");
     }
 
-    console.log(props.timer + " and now: " + Date.now());
     return (
         <nav className="navbar navbar-dark sticky-top" id="gameNav">
             <div className="container">

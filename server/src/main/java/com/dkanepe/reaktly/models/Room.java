@@ -50,6 +50,8 @@ public class Room {
     @OneToOne(cascade = CascadeType.ALL)
     private Game currentGame;
 
+    private long startTime;
+
     @PrePersist
     protected void onCreate() {
         RandomString gen = new RandomString(8, ThreadLocalRandom.current());

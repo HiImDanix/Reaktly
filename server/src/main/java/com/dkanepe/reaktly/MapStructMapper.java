@@ -23,12 +23,6 @@ public interface MapStructMapper {
     RoomDTO roomToRoomDTO(Room room);
 
     GameStartDTO roomToGameStartedDTO(Room room);
-    @AfterMapping
-    default void afterMappingRoomToGameStartedDTO(Room room, @MappingTarget GameStartDTO gameStartDTO) {
-        // TODO: make this configurable
-        // 5 seconds from now
-        gameStartDTO.setStartTime(LocalDateTime.now().plusSeconds(5));
-    };
 
     PerfectClickerDTO perfectClickerToPerfectClickerDTO(PerfectClicker perfectClicker);
     @AfterMapping
