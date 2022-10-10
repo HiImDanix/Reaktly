@@ -12,10 +12,10 @@ function PlayPage() {
 
     // enum for room status
     const ROOM_STATUS = {
-        LOBBY: 0,
-        ABOUT_TO_START: 1,
-        IN_PROGRESS: 2,
-        FINISHED: 3
+        LOBBY: "LOBBY",
+        ABOUT_TO_START: "ABOUT_TO_START",
+        IN_PROGRESS: "IN_PROGRESS",
+        FINISHED: "FINISHED"
     }
 
     // Init
@@ -62,10 +62,15 @@ function PlayPage() {
         function setupLobby() {
             stompClient.subscribe("/user/queue/room", (payload) => {
                 const room = JSON.parse(payload.body);
+                console.log(room);
                 setHostID(room.host.id);
                 setRoomID(room.id);
                 setPlayers(room.players);
                 setRoomCode(room.code);
+                setRoomStatus(room.status);
+                if (room.status === ROOM_STATUS.ABOUT_TO_START) {
+                    setTimer(room.start_time);
+                }
                 subscribe(room.id);
             });
             stompClient.send("/app/room");
@@ -112,6 +117,8 @@ function PlayPage() {
                 </div>
             </div>
 
+            }{roomStatus === ROOM_STATUS.IN_PROGRESS &&
+            <h1></h1>
             }
         </div>
     )

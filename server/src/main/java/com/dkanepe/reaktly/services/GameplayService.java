@@ -54,6 +54,7 @@ public class GameplayService {
         // The game is about to start, so we need to update room & send a message to the players
         Room room = player.getRoom();
         room.setStartTime(System.currentTimeMillis() + 5000); // get from config
+        roomRepository.save(room);
         GameStartDTO gameStartDTO = mapper.roomToGameStartedDTO(player.getRoom());
         messaging.sendToGame(GameplayActions.GAME_STARTED, player.getRoom().getID(), gameStartDTO);
 
@@ -66,7 +67,7 @@ public class GameplayService {
             e.printStackTrace();
         }
 
-        roomService.updateRoomStatus(player.getRoom(), Room.Status.IN_PROGRESS);
+        //roomService.updateRoomStatus(player.getRoom(), Room.Status.IN_PROGRESS);
 
         // Start the first, specific game
         Game.GameType gameType = player.getRoom().getCurrentGame().getType();
