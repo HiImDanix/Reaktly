@@ -4,6 +4,7 @@ import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import * as SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
+import PlayNav from "./PlayNav";
 
 function PlayPage() {
 
@@ -16,6 +17,7 @@ function PlayPage() {
     const [roomCode, setRoomCode] = useState(null);
     const [roomID, setRoomID] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [timer, setTimer] = useState(null); // epoch to count down to
 
     // Redirect state
     const location = useLocation();
@@ -76,22 +78,30 @@ function PlayPage() {
             stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', () => console.log("Game end"));
         }
 
+        // sleep for 3 seconds, then start timer of 5 seconds
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        sleep(3000).then(() => {
+            setTimer(Date.now() + 5000);
+        });
+
 
     }, []);
 
 
     return (
         <>
-            <Nav></Nav>
-            <h1>Playing as {name} with session {session} and roomID: {roomID}</h1>
-            <p>I am a host: {isHost() ? "Yes" : "No"}</p>
-            <p>Room code: {roomCode}</p>
-            <p>Players:</p>
-            <ul>
-                {players.map((player) => (
-                    <li key={player.id}>{player.name}</li>
-                ))}
-            </ul>
+            <PlayNav name={name} timer={timer}></PlayNav>
+            <div className="bg-dark d-flex flex-column min-vh-100">
+                <h1>Playing as {name} with session {session} and roomID: {roomID}</h1>
+                <p>I am a host: {isHost() ? "Yes" : "No"}</p>
+                <p>Room code: {roomCode}</p>
+                <p>Players:</p>
+                <ul>
+                    {players.map((player) => (
+                        <li key={player.id}>{player.name}</li>
+                    ))}
+                </ul>
+            </div>
         </>
     )
 }
