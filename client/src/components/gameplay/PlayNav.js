@@ -1,7 +1,10 @@
 import {ReactComponent as Logo} from "../../assets/img/logo_inverse.svg";
 import Countdown from "react-countdown";
+import {useNavigate} from "react-router-dom";
 
 function PlayNav(props) {
+
+    const navigate = useNavigate();
 
     // timer renderer
     const renderer = ({ hours, minutes, seconds, completed }) => {
@@ -12,6 +15,13 @@ function PlayNav(props) {
             </span>
         );
     };
+
+    function logout() {
+        // clear session
+        localStorage.removeItem("session");
+        // redirect to home page
+        navigate("/");
+    }
 
     console.log(props.timer + " and now: " + Date.now());
     return (
@@ -46,7 +56,7 @@ function PlayNav(props) {
                         </div>
                         <div className="col d-flex justify-content-end align-items-center">
                             <span className="text-end d-md-flex flex-fill justify-content-md-end align-items-md-center">
-                                <a className="d-flex d-md-flex" href="#">Log out</a>
+                                <a className="d-flex d-md-flex user-select-none" role={"button"} onClick={logout}>Log out</a>
                             </span>
                         </div>
                     </div>
