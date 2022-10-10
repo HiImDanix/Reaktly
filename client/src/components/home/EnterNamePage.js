@@ -84,7 +84,6 @@ function EnterNamePage() {
                 </>
             )
         case ACTION.NEW_ROOM:
-            console.log("new room");
             return (
                 <>
                     <Nav></Nav>

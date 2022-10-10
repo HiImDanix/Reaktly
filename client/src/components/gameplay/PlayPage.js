@@ -39,9 +39,6 @@ function PlayPage() {
         // Connect to websockets using factory
         // var socket = ;
         stompClient = Stomp.over(() => new SockJS('http://localhost:8080/ws'));
-        stompClient.webSocketFactory= function () {
-            return new SockJS("http://localhost:8080/ws");
-        };
         stompClient.connect({Authorization:session}, onConnected, onError);
 
         function onError(error) {
@@ -60,6 +57,7 @@ function PlayPage() {
                 setHostID(room.host.id)
                 setRoomID(room.id)
                 setPlayers(room.players)
+                setRoomCode(room.code)
             });
             stompClient.send("/app/room");
         }
@@ -87,6 +85,7 @@ function PlayPage() {
             <Nav></Nav>
             <h1>Playing as {name} with session {session} and roomID: {roomID}</h1>
             <p>I am a host: {isHost() ? "Yes" : "No"}</p>
+            <p>Room code: {roomCode}</p>
             <p>Players:</p>
             <ul>
                 {players.map((player) => (
