@@ -38,6 +38,11 @@ function EnterNamePage() {
         const data = await res.json();
 
         if (res.status === 200) {
+            // put state in local storage
+            localStorage.setItem("session", data.session);
+            localStorage.setItem("id", data.id);
+            localStorage.setItem("name", data.name);
+            // redirect to play page
             navigate("/play", {state: {name: data.name, session: data.session, id: data.id}});
         } else {
             alert("Error creating game");
@@ -59,9 +64,13 @@ function EnterNamePage() {
         const data = await res.json();
 
         if (res.status === 200) {
+            // put state in local storage
+            localStorage.setItem("session", data.session);
+            localStorage.setItem("id", data.id);
+            localStorage.setItem("name", data.name);
             navigate("/play", {state: {name: data.name, session: data.session, id: data.id}});
         } else {
-            alert("Error creating game");
+            alert("Error joining game");
         }
     }
 
