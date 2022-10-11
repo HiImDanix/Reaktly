@@ -3,8 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a612c380-a8e3-4107-bfe7-031e43697ae5" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/gameplay/PlayPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/gameplay/PlayPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/dto/RoomDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/dto/RoomDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/home/EnterNamePage.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/services/GameplayService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../server/src/main/java/com/dkanepe/reaktly/services/GameplayService.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,7 +76,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1665141673853</updated>
-      <workItem from="1665141675544" duration="60403000" />
+      <workItem from="1665141675544" duration="61151000" />
     </task>
     <servers />
   </component>

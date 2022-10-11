@@ -102,7 +102,7 @@ function EnterNamePage() {
                                 <h1 className="mb-3">What's your name?</h1>
                                 <form>
                                     <input className="form-control mb-3" type="text" onChange={e => {setName(e.target.value)}} />
-                                    <button className="btn btn-primary" type="button" onClick={createGame}>Create game</button>
+                                    <button className="btn btn-primary" type="submit" onClick={createGame}>Create game</button>
                                 </form>
                             </div>
                         </div>
