@@ -1,4 +1,3 @@
-import Nav from "../home/Nav";
 import {useLocation} from "react-router";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
@@ -6,7 +5,7 @@ import * as SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
 import PlayNav from "./PlayNav";
 import Lobby from "./Lobby";
-import Countdown from "react-countdown";
+import Game from "./Game";
 
 function PlayPage() {
 
@@ -29,6 +28,7 @@ function PlayPage() {
     const [timer, setTimer] = useState(null); // epoch to count down to
     const [stompClient, setStompClient] = useState(Stomp.over(() => new SockJS('http://localhost:8080/ws')));
     const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
+    const [gameState, setGameState] = useState(null);
 
     // Redirect state
     const location = useLocation();
@@ -85,14 +85,20 @@ function PlayPage() {
                 setPlayers(players => [...players, player]);
             });
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', () => console.log("Click, Clack!"));
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_STARTED', (payload) => {
-                const game = JSON.parse(payload.body);
-                setTimer(game.start_time);
+            stompClient.subscribe(ROOM_PREFIX + 'PREPARE_FOR_START', (payload) => {
+                const preparation = JSON.parse(payload.body);
+                setTimer(preparation.start_time);
                 setRoomStatus(ROOM_STATUS.ABOUT_TO_START);
+            });
+            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_START', (payload) => {
+                const game = JSON.parse(payload.body);
+                console.log(game);
+                setGameState(game);
+                setRoomStatus(ROOM_STATUS.IN_PROGRESS);
             });
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_START', () => console.log("Perfect Clicker game has started"));
             stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_END', () => console.log("Perfect Clicker game has ended"));
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'END_GAME', () => console.log("Game end"));
+            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END', () => console.log("Game end"));
         }
 
 
@@ -118,7 +124,7 @@ function PlayPage() {
             </div>
 
             }{roomStatus === ROOM_STATUS.IN_PROGRESS &&
-            <h1></h1>
+            <Game stompClient={stompClient} roomID={roomID} setTimer={setTimer} {...gameState}></Game>
             }
         </div>
     )

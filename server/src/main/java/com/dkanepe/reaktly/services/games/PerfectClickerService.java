@@ -22,7 +22,6 @@ import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.CommunicationService;
 import com.dkanepe.reaktly.services.PlayerService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -98,8 +96,8 @@ public class PerfectClickerService {
         if (room.getCurrentGame().getType() != Game.GameType.PERFECT_CLICKER) {
             throw new WrongGame("Current game is not Perfect Clicker");
         }
-        if (room.getCurrentGame().isFinished()) {
-            throw new GameFinished("This particular game is already finished");
+        if (room.getCurrentGame().getStatus() != Game.GameStatus.IN_PROGRESS) {
+            throw new GameFinished("This particular game is not in progress");
         }
 
         PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
@@ -135,21 +133,21 @@ public class PerfectClickerService {
         messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_START, player.getRoom().getID(), dto);
 
         // Sleep until game starts
-        try {
-            Thread.sleep(LocalDateTime.now().until(dto.getStartTime(), ChronoUnit.MILLIS));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(LocalDateTime.now().until(dto.getStartTime(), ChronoUnit.MILLIS));
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         // Set game status to in-progress. No need to inform user.
         player.getRoom().getCurrentGame().setStatus(Game.GameStatus.IN_PROGRESS);
         gameRepository.save(game);
 
-        try {
-            Thread.sleep(LocalDateTime.now().until(dto.getEndTime(), ChronoUnit.MILLIS));
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(LocalDateTime.now().until(dto.getEndTime(), ChronoUnit.MILLIS));
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
 
         // Game has ended
         endCurrentGame(player.getRoom());
@@ -164,7 +162,7 @@ public class PerfectClickerService {
 
         // All games have ended
         // TODO: call when really all games have ended
-        messaging.sendToGame(GameplayActions.END_GAME, player.getRoom().getID(), room.getScoreboard());
+        messaging.sendToGame(GameplayActions.GAME_END, player.getRoom().getID(), room.getScoreboard());
     }
 
     @Transactional
@@ -182,7 +180,7 @@ public class PerfectClickerService {
         // TODO: find a better way. Not using the below line results in errors
         room = roomRepository.findById(room.getID()).get();
         Game game = room.getCurrentGame();
-        game.setFinished(true);
+        game.setStatus(Game.GameStatus.FINISHED);
         gameRepository.save(game);
         System.out.println("Game finished");
         self.distributePoints(room);

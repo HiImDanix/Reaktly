@@ -16,6 +16,7 @@ public abstract class Game {
         NOT_STARTED,
         INSTRUCTIONS,
         IN_PROGRESS,
+        SCOREBOARD,
         FINISHED
     }
 
@@ -25,13 +26,31 @@ public abstract class Game {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private Long ID;
 
     private GameType type;
-    private boolean isFinished = false;
     private GameStatus status = GameStatus.NOT_STARTED;
 
-    public abstract int getGameDurationMillis();
-    public abstract int getInstructionsDurationMillis();
+    // TODO: Get from config. Add scoreboard duration only in DTO.
+    private int instructionsDurationMillis = 8000;
+    private int gameDurationMillis = 10000;
+    private long startTime;
+    private int scoreboardDurationMillis = 5000;
+
+    public Game(GameType type) {
+        this.type = type;
+    }
+
+    public long getEndTime() {
+        return startTime + gameDurationMillis;
+    }
+
+    public long getFinishTime() {
+        return getEndTime() + scoreboardDurationMillis;
+    }
+
+    public abstract String getInstructions();
+    public abstract String getShortInstructions();
+    public abstract String getTitle();
 
 }

@@ -73,7 +73,7 @@ public class RoomController {
     }
 
     /**
-     * Create a new player & automatically a new room
+     * Create a new room (and player)
      * @param name player name
      * @return The player (with session)
      */

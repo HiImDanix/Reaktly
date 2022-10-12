@@ -1,19 +1,16 @@
 package com.dkanepe.reaktly.dto.PerfectClicker;
 
-import com.dkanepe.reaktly.models.Player;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class PerfectClickerDTO {
     private int targetClicks;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private List<PerfectClickerGameStateDTO> state;
 
-    public PerfectClickerDTO(int targetClicks, LocalDateTime startTime, LocalDateTime endTime) {
+
+    public PerfectClickerDTO(int targetClicks) {
         this.targetClicks = targetClicks;
-        this.startTime = startTime;
-        this.endTime = endTime;
     }
 }
