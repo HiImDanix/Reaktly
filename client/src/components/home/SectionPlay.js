@@ -34,10 +34,9 @@ function SectionPlay() {
                 <div class="col-12 col-lg-10 mx-auto" id="join-game">
                     <form class="d-flex justify-content-center flex-wrap" method="post">
                         <div class="mb-3">
-                            <input class="form-control" type="text" required="" minLength="3"
-                                   name="code" placeholder="Game Code" onChange={(e) => setRoomCode(e.target.value)}>
-
-                            </input>
+                            <input class="form-control" type="text" required="" minLength="3" name="code"
+                                   placeholder="Game Code" onChange={(e) => setRoomCode(e.target.value)}
+                                      value={roomCode.toUpperCase()}/>
                         </div>
                         <div class="mb-3">
                             <button class="btn btn-primary ms-sm-2" onClick={validateRoomCode}>Join game</button>

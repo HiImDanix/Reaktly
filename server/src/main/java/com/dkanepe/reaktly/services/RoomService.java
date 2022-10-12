@@ -52,7 +52,7 @@ public class RoomService {
      * Check if a room code is valid
      */
     public boolean isValidRoomCode(String code){
-        return findRoomByCode(code).isPresent();
+        return findRoomByCode(code.toUpperCase().strip()).isPresent();
     }
 
     /**
@@ -63,7 +63,8 @@ public class RoomService {
      */
     @Transactional
     public PersonalPlayerDTO joinRoom(JoinRoomRequest joinRoomRequest) throws InvalidRoomCode {
-        Optional<Room> room = findRoomByCode(joinRoomRequest.getRoomCode());
+        System.out.println("Joining room " + joinRoomRequest.getRoomCode());
+        Optional<Room> room = findRoomByCode(joinRoomRequest.getRoomCode().toUpperCase().strip());
 
         if (room.isEmpty()) {
             throw new InvalidRoomCode("Room with code " + joinRoomRequest.getRoomCode() + " does not exist");

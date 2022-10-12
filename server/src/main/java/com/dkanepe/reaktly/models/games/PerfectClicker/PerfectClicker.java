@@ -42,11 +42,11 @@ public class PerfectClicker extends Game {
     }
 
     public String getInstructions() {
-        return String.format("Click the button as fast as you can until you reach the number <strong>%d</strong>. But be careful, if you go over the number you lose!", getTargetClicks());
+        return String.format("Click the button as fast as you can until you reach <strong>%d</strong> taps. But be careful, if you go over %d, you lose!", getTargetClicks(), getTargetClicks());
     }
 
     public String getShortInstructions() {
-        return String.format("Click the button as fast as you can. But, be careful! if you go over %d, you lose!", getTargetClicks());
+        return String.format("Tap the button as fast as you can. But, be careful! if you go over %d, you lose!", getTargetClicks());
     }
 
 }
