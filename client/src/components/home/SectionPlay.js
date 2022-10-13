@@ -2,6 +2,7 @@ import {useState} from "react";
 import { Link, useNavigate } from 'react-router-dom';
 
 import { ACTION} from "./EnterNamePage";
+import Config from "../../Config.json"
 
 
 function SectionPlay() {
@@ -12,7 +13,7 @@ function SectionPlay() {
 
     const validateRoomCode = async (e) => {
         e.preventDefault();
-        const res = await fetch("http://192.168.0.210:8080/room_code/" + roomCode);
+        const res = await fetch(`${Config.SERVER_URL}/room_code/` + roomCode);
         console.log(res);
         if (res.status === 200) {
             navigate("/enter_name", { state: { roomCode: roomCode, action: ACTION.JOIN_ROOM } });

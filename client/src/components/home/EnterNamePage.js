@@ -2,6 +2,7 @@ import Nav from "./Nav";
 import { useLocation } from "react-router";
 import {useNavigate} from 'react-router-dom';
 import {useState, useEffect} from "react";
+import Config from "../../Config.json";
 
 const ACTION = {
     JOIN_ROOM: 0,
@@ -32,7 +33,7 @@ function EnterNamePage() {
 
     async function createGame(e) {
         e.preventDefault();
-        const res = await fetch("http://192.168.0.210:8080/player?name=" + name, {
+        const res = await fetch(`${Config.SERVER_URL}/player?name=` + name, {
             method: "POST",
         });
         const data = await res.json();
@@ -51,7 +52,7 @@ function EnterNamePage() {
 
     async function joinGame(e) {
         e.preventDefault();
-        const res = await fetch("http://192.168.0.210:8080/join", {
+        const res = await fetch(`${Config.SERVER_URL}/join`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

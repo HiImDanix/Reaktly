@@ -7,6 +7,8 @@ import PlayNav from "./PlayNav";
 import Lobby from "./Lobby";
 import Game from "./Game";
 
+import Config from "../../Config.json";
+
 function PlayPage() {
 
     // enum for room status
@@ -26,7 +28,7 @@ function PlayPage() {
     const [roomID, setRoomID] = useState(null);
     const [players, setPlayers] = useState([]);
     const [timer, setTimer] = useState(null); // epoch to count down to
-    const [stompClient, setStompClient] = useState(Stomp.over(() => new SockJS('http://localhost:8080/ws')));
+    const [stompClient, setStompClient] = useState(Stomp.over(() => new SockJS(`${Config.SERVER_URL}/ws`)));
     const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
     const [gameState, setGameState] = useState(null);
 
