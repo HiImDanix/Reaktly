@@ -70,6 +70,7 @@ function PlayPage() {
                 setPlayers(room.players);
                 setRoomCode(room.code);
                 setRoomStatus(room.status);
+                setGameState(room.current_game);
                 if (room.status === ROOM_STATUS.ABOUT_TO_START) {
                     setTimer(room.start_time);
                 }

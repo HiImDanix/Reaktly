@@ -14,12 +14,5 @@ public class RoomDTO {
     private Room.Status status;
     private long startTime;
 
-    public RoomDTO(long ID, String code, List<PlayerDTO> players, PlayerDTO host, Room.Status status, long startTime) {
-        this.ID = ID;
-        this.code = code;
-        this.players = players;
-        this.host = host;
-        this.status = status;
-        this.startTime = startTime;
-    }
+    private GameDTO currentGame;
 }

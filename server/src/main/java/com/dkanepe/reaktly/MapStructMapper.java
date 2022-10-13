@@ -22,6 +22,14 @@ public interface MapStructMapper {
 
     RoomDTO roomToRoomDTO(Room room);
 
+    @AfterMapping
+    default void afterRoomToRoomDTO(Room room, @MappingTarget RoomDTO roomDTO) {
+        Game currentGame = room.getCurrentGame();
+        if (currentGame instanceof PerfectClicker) {
+            roomDTO.setCurrentGame(gameToGameDTO((PerfectClicker) currentGame));
+        }
+    }
+
     GameStartDTO roomToGameStartedDTO(Room room);
 
     PerfectClickerDTO perfectClickerToPerfectClickerDTO(PerfectClicker perfectClicker);
