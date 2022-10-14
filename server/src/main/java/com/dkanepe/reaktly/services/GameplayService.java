@@ -77,6 +77,18 @@ public class GameplayService {
         // game in progress
         self.gameInProgress(room);
 
+        // sleep until game start
+        Game game = room.getCurrentGame();
+        sleepTime = game.getStartTime() - System.currentTimeMillis();
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // game started
+        self.gameStarted(room);
+
 
 //        // Start the first, specific game
 //        Game.GameType gameType = player.getRoom().getCurrentGame().getType();
@@ -94,8 +106,15 @@ public class GameplayService {
         game.setStartTime(System.currentTimeMillis() + 5000);
         game.setStatus(Game.GameStatus.INSTRUCTIONS);
         gameRepository.save(game);
-        // print time now to game start time
-        messaging.sendToGame(GameplayActions.GAME_START, room.getID(), mapper.gameToGameDTO((PerfectClicker) game));
+        messaging.sendToGame(GameplayActions.GAME_START_INFO, room.getID(), mapper.gameToGameDTO((PerfectClicker) game));
+    }
+
+    @Transactional
+    public void gameStarted(Room room) {
+        Game game = room.getCurrentGame();
+        game.setStatus(Game.GameStatus.IN_PROGRESS);
+        gameRepository.save(game);
+        messaging.sendToGame(GameplayActions.GAME_START_PING, room.getID(), "");
     }
 
     @Transactional // Using transactional because hibernate session is closed for some reason.

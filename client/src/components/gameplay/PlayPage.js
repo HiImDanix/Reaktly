@@ -1,11 +1,10 @@
 import {useLocation} from "react-router";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import * as SockJS from 'sockjs-client';
-import { Stomp } from '@stomp/stompjs';
 import PlayNav from "./PlayNav";
 import Lobby from "./Lobby";
 import Game from "./Game";
+import Websocket from "../../Websocket";
 
 import Config from "../../Config.json";
 
@@ -28,7 +27,7 @@ function PlayPage() {
     const [roomID, setRoomID] = useState(null);
     const [players, setPlayers] = useState([]);
     const [timer, setTimer] = useState(null); // epoch to count down to
-    const [stompClient, setStompClient] = useState(Stomp.over(() => new SockJS(`${Config.SERVER_URL}/ws`)));
+    const [stompClient, setStompClient] = useState(new Websocket());
     const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
     const [gameState, setGameState] = useState(null);
 
@@ -37,12 +36,12 @@ function PlayPage() {
     const state = location.state;
     const name = state?.name;
     const session = state?.session;
-    const id = state?.id;
+    const myID = state?.id;
 
     // Functions
 
     function isHost() {
-        return hostID === id;
+        return hostID === myID;
     }
 
     useEffect(() => {
@@ -51,7 +50,7 @@ function PlayPage() {
             return navigate("/");
         }
 
-        stompClient.connect({Authorization:session}, onConnected, onError);
+        stompClient.connect(session, onConnected, onError);
 
         function onError(error) {
             alert("Could not connect to the game servers!");
@@ -87,21 +86,17 @@ function PlayPage() {
                 const player = JSON.parse(payload.body);
                 setPlayers(players => [...players, player]);
             });
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', () => console.log("Click, Clack!"));
             stompClient.subscribe(ROOM_PREFIX + 'PREPARE_FOR_START', (payload) => {
                 const preparation = JSON.parse(payload.body);
                 setTimer(preparation.start_time);
                 setRoomStatus(ROOM_STATUS.ABOUT_TO_START);
             });
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_START', (payload) => {
+            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_START_INFO', (payload) => {
                 const game = JSON.parse(payload.body);
                 console.log(game);
                 setGameState(game);
                 setRoomStatus(ROOM_STATUS.IN_PROGRESS);
             });
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_START', () => console.log("Perfect Clicker game has started"));
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_GAME_END', () => console.log("Perfect Clicker game has ended"));
-            stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END', () => console.log("Game end"));
         }
 
 
@@ -127,7 +122,7 @@ function PlayPage() {
             </div>
 
             }{roomStatus === ROOM_STATUS.IN_PROGRESS &&
-            <Game stompClient={stompClient} roomID={roomID} setTimer={setTimer} {...gameState}></Game>
+            <Game stompClient={stompClient} roomID={roomID} myID={myID} setTimer={setTimer} {...gameState}></Game>
             }
         </div>
     )

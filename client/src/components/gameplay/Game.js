@@ -1,6 +1,8 @@
 import PropTypes from "prop-types";
 import {useEffect, useState} from "react";
 import Instructions from "./Instructions";
+import GameType from "./GameType";
+import PerfectClickerGame from "./games/PerfectClickerGame";
 
 function Game(props) {
 
@@ -11,8 +13,6 @@ function Game(props) {
         FINISHED: "FINISHED"
     }
 
-    const stomClient = props.stompClient;
-    const roomID = props.roomID;
 
     const [startTime, setStartTime] = useState(props.start_time);
     const [endTime, setEndTime] = useState(props.end_time);
@@ -25,15 +25,38 @@ function Game(props) {
     const [type, setType] = useState(props.type);
     const [game, setGame] = useState(props.game);
 
+
     useEffect(() => {
+        const GAMEPLAY_PREFIX = '/topic/room/' + props.roomID + '/gameplay/';
         props.setTimer(startTime);
+
+        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_START_PING', (payload) => {
+            props.setTimer(endTime);
+            setStatus(GAME_STATUS.IN_PROGRESS);
+        });
+        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END_SCORES', (payload) => {
+            setStatus(GAME_STATUS.SCOREBOARD);
+        });
+        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_FINISHED_SCOREBOARD', (payload) => {
+            setStatus(GAME_STATUS.FINISHED);
+        });
+
+        // subscribe to game specific events
+        if (type === GameType.PERFECT_CLICKER) {
+            props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK');
+        }
     }, []);
 
     switch (status) {
         case GAME_STATUS.INSTRUCTIONS:
             return (<Instructions title={title} instructions={instructions} type={type}></Instructions>);
         case GAME_STATUS.IN_PROGRESS:
-            return (<>Game in progress</>);
+            switch (type) {
+                case GameType.PERFECT_CLICKER:
+                    return (<PerfectClickerGame myID={props.myID} roomID={props.roomID} stompClient={props.stompClient} {...game}></PerfectClickerGame>);
+                default:
+                    return (<div>Error: Unknown game type</div>);
+            }
         case GAME_STATUS.SCOREBOARD:
             return (<>Scoreboard</>);
         case GAME_STATUS.FINISHED:
@@ -55,6 +78,9 @@ Game.propTypes = {
     title: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     setTimer: PropTypes.func.isRequired,
+    stompClient: PropTypes.object.isRequired,
+    roomID: PropTypes.number.isRequired,
+    myID: PropTypes.number.isRequired,
 }
 
 export default Game;
