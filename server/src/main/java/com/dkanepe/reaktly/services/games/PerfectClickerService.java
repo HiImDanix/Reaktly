@@ -116,8 +116,8 @@ public class PerfectClickerService {
         gameRepository.save(game);
 
         // inform players of the click
-        ClickDTO dto = new ClickDTO(state.getPlayer(), state.getLastClick());
-        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICK, room.getID(), dto);
+        ClickDTO dto = new ClickDTO(state.getPlayer(),state.getClicks(), state.getLastClick());
+        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICKS, room.getID(), dto);
     }
 
     public void startGameLoop(Room room) {

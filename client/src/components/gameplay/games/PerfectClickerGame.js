@@ -16,7 +16,7 @@ function PerfectClickerGame(props) {
 
     useEffect(() => {
         const GAMEPLAY_PREFIX = '/topic/room/' + props.roomID + '/gameplay/';
-        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK', receiveClick);
+        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICKS', receiveClick);
     }, []);
 
     // click
@@ -27,8 +27,7 @@ function PerfectClickerGame(props) {
     const receiveClick = (payload) => {
         const data = JSON.parse(payload.body);
         if (props.myID === data.player_id) {
-            console.log("Received click from myself");
-            setClicks((clicks) => clicks + 1);
+            setClicks(data.clicks);
         }
     }
 

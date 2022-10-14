@@ -43,7 +43,7 @@ function Game(props) {
 
         // subscribe to game specific events
         if (type === GameType.PERFECT_CLICKER) {
-            props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICK');
+            props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICKS');
         }
     }, []);
 
