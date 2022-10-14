@@ -120,83 +120,18 @@ public class PerfectClickerService {
         messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICK, room.getID(), dto);
     }
 
-    public void startGame(Player player) {
-        // TODO: Refactor the whole mess (if there is an exception, the whole game will come to a halt)
-        PerfectClickerDTO dto = mapper.perfectClickerToPerfectClickerDTO((PerfectClicker) player.getRoom().getCurrentGame());
-
-        // Set the game's status to instructions screen
-        PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
-        game.setStatus(Game.GameStatus.INSTRUCTIONS);
-        gameRepository.save(game);
-
-        // Inform users of game start & end
-        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_START, player.getRoom().getID(), dto);
-
-        // Sleep until game starts
-//        try {
-//            Thread.sleep(LocalDateTime.now().until(dto.getStartTime(), ChronoUnit.MILLIS));
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-
-        // Set game status to in-progress. No need to inform user.
-        player.getRoom().getCurrentGame().setStatus(Game.GameStatus.IN_PROGRESS);
-        gameRepository.save(game);
-
-//        try {
-//            Thread.sleep(LocalDateTime.now().until(dto.getEndTime(), ChronoUnit.MILLIS));
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
-
-        // Game has ended
-        endCurrentGame(player.getRoom());
-        Room room = roomRepository.findById(player.getRoom().getID()).get();
-
-        // print game state
-        self.printGameState(room);
-
-        // Inform users of game end
-//        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_END, room.getID(),
-//                mapper.perfectClickerToPerfectClickerGameStateDTO((PerfectClicker) room.getCurrentGame()));
-
-        // All games have ended
-        // TODO: call when really all games have ended
-        messaging.sendToGame(GameplayActions.GAME_END, player.getRoom().getID(), room.getScoreboard());
+    public void startGameLoop(Room room) {
     }
 
     @Transactional
-    public void printGameState(Room room) {
-        room = roomRepository.findById(room.getID()).get();
-        PerfectClicker game = (PerfectClicker) room.getCurrentGame();
-        List<PerfectClickerGameStateDTO> gameState = mapper.perfectClickerGameStateToDTO(game.getState());
-        System.out.println("Game state:" + gameState);
-        messaging.sendToGame(GameplayActions.PERFECT_CLICKER_GAME_END, room.getID(),
-                gameState);
-    }
-
-
-    public void endCurrentGame(Room room) {
-        // TODO: find a better way. Not using the below line results in errors
-        room = roomRepository.findById(room.getID()).get();
-        Game game = room.getCurrentGame();
-        game.setStatus(Game.GameStatus.FINISHED);
-        gameRepository.save(game);
-        System.out.println("Game finished");
-        self.distributePoints(room);
-
-    }
-
-    @Transactional
-    public void distributePoints(Room room) {
-        // TODO: find a better way. Not using the below line results in a LazyInitializationException
-        room = entityManager.merge(room);
-        PerfectClicker game = (PerfectClicker) room.getCurrentGame();
+    public void distributePoints(Room room, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
+                                 int thirdPlaceBonus) {
         // Distribute points to players:
         // Players that clicked over the target get 0 points.
         // Remaining players get 100 points * (their clicks performed / target clicks)
         // First player gets 100 points extra. Second player gets 50 points extra. Third player gets 25 points extra.
         // if players have the same amount of clicks, winner is the one who's last click was earlier
+        PerfectClicker game = (PerfectClicker) room.getCurrentGame();
         List<GameStatePerfectClicker> state = game.getState().stream()
                 .filter(s -> s.getClicks() <= game.getTargetClicks())
                 .sorted((s1, s2) -> {
@@ -206,18 +141,17 @@ public class PerfectClickerService {
                     return s2.getClicks() - s1.getClicks();
                 })
                 .collect(Collectors.toList());
-        int maxPoints = 100;
         for (int i = 0; i < state.size(); i++) {
             GameStatePerfectClicker s = state.get(i);
             // Calculate points
             int points = (int) (maxPoints * (s.getClicks() / (double) game.getTargetClicks()));
             // add bonus points
             if (i == 0) {
-                points += 100;
+                points += firstPlaceBonus;
             } else if (i == 1) {
-                points += 50;
+                points += secondPlaceBonus;
             } else if (i == 2) {
-                points += 25;
+                points += thirdPlaceBonus;
             }
             addScoreboardPoints(s.getPlayer(), points);
         }

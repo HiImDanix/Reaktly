@@ -20,6 +20,8 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
+
 // add sl4j logger
 @Slf4j
 @Service
@@ -34,12 +36,13 @@ public class GameplayService {
     private final RoomService roomService;
     private final GameRepository gameRepository;
 
-
+    private final EntityManager entityManager;
 
     public GameplayService(MapStructMapper mapper, ScoreboardRepository scoreboardRepository,
                            PlayerService playerService, RoomRepository roomRepository,
                            PerfectClickerService perfectClickerService, @Lazy GameplayService self,
-                           CommunicationService messaging, RoomService roomService, GameRepository gameRepository) {
+                           CommunicationService messaging, RoomService roomService, GameRepository gameRepository,
+                           EntityManager entityManager) {
         this.scoreboardRepository = scoreboardRepository;
         this.mapper = mapper;
         this.playerService = playerService;
@@ -49,85 +52,92 @@ public class GameplayService {
         this.messaging = messaging;
         this.roomService = roomService;
         this.gameRepository = gameRepository;
+        this.entityManager = entityManager;
     }
 
     public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
             , NotEnoughGames, GameAlreadyStarted, NotAHost {
-        // TODO: Refactor. Split into smaller methods. Execute after set time in separate threads.
-        // Because, if there is an exception, the game will halt.
-        Player player = self.validateGameStart(headerAccessor);
-        self.prepareRoomForFirstGame(player.getRoom());
-        roomService.updateRoomStatus(player.getRoom(), Room.Status.ABOUT_TO_START);
 
-        // The game is about to start, so we need to update room & send a message to the players
+        Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
         Room room = player.getRoom();
-        room.setStartTime(System.currentTimeMillis() + 5000); // TODO: get from config
-        roomRepository.save(room);
-        GameStartDTO gameStartDTO = mapper.roomToGameStartedDTO(player.getRoom());
-        messaging.sendToRoom(RoomActions.PREPARE_FOR_START, player.getRoom().getID(), gameStartDTO);
 
+        // Validate the 'start game' request
+        self.validateGameStart(room, player);
+
+        // Give the lobby 5 seconds to prepare for the games to start.
+        long prepFinishTime = System.currentTimeMillis() + 5000;
+        prepareLobbyForStart(room, prepFinishTime);
         // sleep until lobby preparation time has passed.
-        long sleepTime = gameStartDTO.getStartTime() - System.currentTimeMillis();
+        long sleepTime = prepFinishTime - System.currentTimeMillis();
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // game in progress
-        self.gameInProgress(room);
-
-        // sleep until game start
-        Game game = room.getCurrentGame();
-        sleepTime = game.getStartTime() - System.currentTimeMillis();
+        // Take the next game from the list and make it the current game.
+        self.setNextGameAsCurrent(room);
+        // Show current game's instructions to the players & give them time to read them.
+        long instructionsEndTime = self.gameInstructions(room);
+        sleepTime = instructionsEndTime - System.currentTimeMillis();
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // game started
-        self.gameStarted(room);
+        // Start the game & inform the players.
+        startCurrentGame(room);
+    }
 
-
-//        // Start the first, specific game
-//        Game.GameType gameType = player.getRoom().getCurrentGame().getType();
-//        switch (gameType) {
-//            case PERFECT_CLICKER:
-//                perfectClickerService.startGame(player);
-//                break;
-//        }
+    private void prepareLobbyForStart(Room room, long startTime) {
+        room = entityManager.find(Room.class, room.getID());
+        roomService.updateRoomStatus(room, Room.Status.ABOUT_TO_START);
+        room.setStartTime(startTime); // TODO: get from config
+        roomRepository.save(room);
+        GameStartDTO gameStartDTO = mapper.roomToGameStartedDTO(room);
+        messaging.sendToRoom(RoomActions.PREPARE_FOR_START, room.getID(), gameStartDTO);
     }
 
     @Transactional
-    public void gameInProgress(Room room) {
+    public long gameInstructions(Room room) {
+        room = entityManager.find(Room.class, room.getID());
         roomService.updateRoomStatus(room, Room.Status.IN_PROGRESS);
         Game game = room.getCurrentGame();
         game.setStartTime(System.currentTimeMillis() + 5000);
         game.setStatus(Game.GameStatus.INSTRUCTIONS);
         gameRepository.save(game);
         messaging.sendToGame(GameplayActions.GAME_START_INFO, room.getID(), mapper.gameToGameDTO((PerfectClicker) game));
+        return game.getStartTime();
     }
 
-    @Transactional
-    public void gameStarted(Room room) {
+    private void startCurrentGame(Room room) {
+        room = entityManager.find(Room.class, room.getID());
         Game game = room.getCurrentGame();
         game.setStatus(Game.GameStatus.IN_PROGRESS);
         gameRepository.save(game);
         messaging.sendToGame(GameplayActions.GAME_START_PING, room.getID(), "");
+
+        // Start the specific game's game-loop in a new thread.
+        Game.GameType gameType = room.getCurrentGame().getType();
+        Room finalRoom = room;
+        new Thread(() -> {
+            switch (gameType) {
+                case PERFECT_CLICKER:
+                    perfectClickerService.startGameLoop(finalRoom);
+                    break;
+            }
+        }).start();
     }
 
-    @Transactional // Using transactional because hibernate session is closed for some reason.
-    public Player validateGameStart(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers,
+    @Transactional(readOnly = true)
+    public void validateGameStart(Room room, Player player) throws NotEnoughPlayers,
             NotEnoughGames, GameAlreadyStarted, NotAHost {
-        Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
-        Room room = player.getRoom();
+        room = entityManager.find(Room.class, room.getID());
 
-        // not a host
         if (!room.getHost().equals(player)) {
             throw new NotAHost("Only the host can start the game");
         }
-
         if (room.getStatus() != Room.Status.LOBBY) {
             throw new GameAlreadyStarted("Cannot start the game because it already in progress or finished");
         }
@@ -137,17 +147,15 @@ public class GameplayService {
         if (room.getGames().size() < 1) {
             throw new NotEnoughGames("You can't start playing without adding any mini-games!");
         }
-        return player;
     }
 
-    /*
-        set status of room to IN_PROGRESS and set currentGame to the first game in the list
-     */
-    @Transactional // Using transactional because hibernate session is closed for some reason.
-    public void prepareRoomForFirstGame(Room room) {
+    @Transactional
+    public void setNextGameAsCurrent(Room room) {
+        room = entityManager.find(Room.class, room.getID());
         Game game = room.getGames().iterator().next();
         room.setCurrentGame(game);
         room.getGames().remove(game);
+        roomRepository.save(room);
     }
 
 
