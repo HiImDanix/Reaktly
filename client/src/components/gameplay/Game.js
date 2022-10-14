@@ -53,7 +53,8 @@ function Game(props) {
         case GAME_STATUS.IN_PROGRESS:
             switch (type) {
                 case GameType.PERFECT_CLICKER:
-                    return (<PerfectClickerGame myID={props.myID} roomID={props.roomID} stompClient={props.stompClient} {...game}></PerfectClickerGame>);
+                    return (<PerfectClickerGame myID={props.myID} roomID={props.roomID} stompClient={props.stompClient}
+                                                shortInstructions={shortInstructions} {...game}></PerfectClickerGame>);
                 default:
                     return (<div>Error: Unknown game type</div>);
             }

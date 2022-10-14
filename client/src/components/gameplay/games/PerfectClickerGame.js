@@ -47,7 +47,7 @@ function PerfectClickerGame(props) {
             </main>
             <div className="text-center bg-dark-lighter mt-auto">
                 <div className="container text-white py-3">
-                    <h5 className="mb-0">Tap the button as many times as you can until the time runs out!</h5>
+                    <h5 className="mb-0">{props.shortInstructions}</h5>
                 </div>
             </div>
         </>
@@ -60,6 +60,7 @@ PerfectClickerGame.propTypes = {
     myID: PropTypes.number.isRequired,
     target_clicks: PropTypes.number.isRequired,
     state: PropTypes.array.isRequired,
+    short_instructions: PropTypes.string.isRequired,
 
 }
 
