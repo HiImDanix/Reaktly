@@ -56,14 +56,13 @@ public class RoomService {
     }
 
     /**
-     * If room code is valid, creates a new player and adds it to the room.
+     * Creates a new player and adds it to the room by its code.
      * @param joinRoomRequest Join room request
      * @throws InvalidRoomCode if room with given code does not exist
-     * @return PersonalPlayerDTO
+     * @return PersonalPlayerDTO (includes the player's session id)
      */
     @Transactional
     public PersonalPlayerDTO joinRoom(JoinRoomRequest joinRoomRequest) throws InvalidRoomCode {
-        System.out.println("Joining room " + joinRoomRequest.getRoomCode());
         Optional<Room> room = findRoomByCode(joinRoomRequest.getRoomCode().toUpperCase().strip());
 
         if (room.isEmpty()) {
@@ -79,6 +78,11 @@ public class RoomService {
 
     }
 
+    /**
+     * Creates a new room and a new player. The player is added to the room as the host.
+     * @param name Player name
+     * @return RoomDTO
+     */
     @Transactional
     public PersonalPlayerDTO createRoom(String name) {
         Player player = new Player(name);
@@ -99,7 +103,6 @@ public class RoomService {
         return mapper.roomToRoomDTO(room);
     }
 
-    // Update room status
     public void updateRoomStatus(Room room, Room.Status status) {
         room.setStatus(status);
         roomRepository.save(room);

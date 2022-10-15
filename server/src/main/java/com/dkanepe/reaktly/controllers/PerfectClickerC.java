@@ -1,6 +1,5 @@
 package com.dkanepe.reaktly.controllers;
 
-import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
 import com.dkanepe.reaktly.exceptions.GameFinished;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.exceptions.RoomNotInProgress;

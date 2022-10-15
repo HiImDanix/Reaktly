@@ -14,7 +14,6 @@ import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Hibernate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 
-// add sl4j logger
 @Slf4j
 @Service
 public class GameplayService {
@@ -55,6 +53,15 @@ public class GameplayService {
         this.entityManager = entityManager;
     }
 
+    /**
+     * Receive a request to start playing.
+     * @param headerAccessor The websocket message header accessor.
+     * @throws InvalidSession If the session is invalid.
+     * @throws NotEnoughPlayers If there are not enough players in the room.
+     * @throws NotEnoughGames If not enough games have been added to the room for playing.
+     * @throws GameAlreadyStarted If the room is not waiting for the game to start.
+     * @throws NotAHost If the player is not the host.
+     */
     public void startGame(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, NotEnoughPlayers
             , NotEnoughGames, GameAlreadyStarted, NotAHost {
 
@@ -90,6 +97,11 @@ public class GameplayService {
         startCurrentGame(room);
     }
 
+    /**
+     * Give the room (lobby) time to prepare for the game to start.
+     * @param room The room to prepare.
+     * @param startTime The time at which the game will start.
+     */
     private void prepareLobbyForStart(Room room, long startTime) {
         room = entityManager.find(Room.class, room.getID());
         roomService.updateRoomStatus(room, Room.Status.ABOUT_TO_START);
@@ -99,6 +111,25 @@ public class GameplayService {
         messaging.sendToRoom(RoomActions.PREPARE_FOR_START, room.getID(), gameStartDTO);
     }
 
+    /**
+     * Set the next game in the room's game list as the current game. Does not inform the players.
+     * @param room The room to set the next game for.
+     */
+    @Transactional
+    public void setNextGameAsCurrent(Room room) {
+        room = entityManager.find(Room.class, room.getID());
+        Game game = room.getGames().iterator().next();
+        room.setCurrentGame(game);
+        room.getGames().remove(game);
+        roomRepository.save(room);
+    }
+
+    /**
+     * Show the current game's instructions to the players & give them time to read them.
+     * It informs the players along with the current game's properties e.g. start time, end time, etc.
+     * @param room The room to show the instructions for the current game to.
+     * @return The time at which the instructions will end and the game will start.
+     */
     @Transactional
     public long gameInstructions(Room room) {
         room = entityManager.find(Room.class, room.getID());
@@ -111,6 +142,10 @@ public class GameplayService {
         return game.getStartTime();
     }
 
+    /**
+     * Start the current game in the room & inform (ping) the players that the game has started.
+     * @param room The room for which to start the current game.
+     */
     private void startCurrentGame(Room room) {
         room = entityManager.find(Room.class, room.getID());
         Game game = room.getCurrentGame();
@@ -120,16 +155,24 @@ public class GameplayService {
 
         // Start the specific game's game-loop in a new thread.
         Game.GameType gameType = room.getCurrentGame().getType();
-        Room finalRoom = room;
+
         new Thread(() -> {
             switch (gameType) {
-                case PERFECT_CLICKER:
-                    perfectClickerService.startGameLoop(finalRoom);
-                    break;
+                case PERFECT_CLICKER -> perfectClickerService.startGameLoop(game);
+                default -> log.error("Game type not supported: {}", gameType);
             }
         }).start();
     }
 
+    /**
+     * Validate the 'start game' request.
+     * @param room The room to validate the request for.
+     * @param player The player who sent the request.
+     * @throws NotEnoughPlayers If there are not enough players in the room.
+     * @throws NotEnoughGames If the room does not have any games to play added to it.
+     * @throws GameAlreadyStarted If the room's status is not LOBBY.
+     * @throws NotAHost If the player who sent the request is not the host of the room.
+     */
     @Transactional(readOnly = true)
     public void validateGameStart(Room room, Player player) throws NotEnoughPlayers,
             NotEnoughGames, GameAlreadyStarted, NotAHost {
@@ -148,15 +191,5 @@ public class GameplayService {
             throw new NotEnoughGames("You can't start playing without adding any mini-games!");
         }
     }
-
-    @Transactional
-    public void setNextGameAsCurrent(Room room) {
-        room = entityManager.find(Room.class, room.getID());
-        Game game = room.getGames().iterator().next();
-        room.setCurrentGame(game);
-        room.getGames().remove(game);
-        roomRepository.save(room);
-    }
-
 
 }

@@ -8,9 +8,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Click the button as fast as you can until you reach the displayed number.
@@ -33,8 +31,6 @@ public class PerfectClicker extends Game {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("clicks DESC, lastClick ASC")
     private List<GameStatePerfectClicker> state = new ArrayList<>();
-
-
 
     public PerfectClicker(int targetClicks) {
         this.targetClicks = targetClicks;

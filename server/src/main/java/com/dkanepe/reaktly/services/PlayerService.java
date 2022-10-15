@@ -8,7 +8,6 @@ import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PlayerService {

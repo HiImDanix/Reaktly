@@ -1,9 +1,6 @@
 package com.dkanepe.reaktly.dto;
 
-import com.dkanepe.reaktly.models.Player;
-import lombok.*;
-
-import javax.validation.Valid;
+import lombok.Data;
 
 @Data
 public class JoinRoomRequest {

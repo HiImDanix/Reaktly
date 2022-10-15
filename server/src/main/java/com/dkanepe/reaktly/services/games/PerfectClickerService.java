@@ -3,8 +3,6 @@ package com.dkanepe.reaktly.services.games;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
-import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerDTO;
-import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerGameStateDTO;
 import com.dkanepe.reaktly.exceptions.GameFinished;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.exceptions.RoomNotInProgress;
@@ -30,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,7 @@ public class PerfectClickerService {
     private final GameRepository gameRepository;
     private final PerfectClickerService self;
 
-    private CommunicationService messaging;
+    private final CommunicationService messaging;
     private final RoomRepository roomRepository;
     private final EntityManager entityManager;
 
@@ -61,29 +60,20 @@ public class PerfectClickerService {
         this.entityManager = entityManager;
     }
 
-    public Scoreboard addScoreboardPoints(Player player, int points) {
-        log.debug("Adding {} points to player {}", points, player);
-
-        Scoreboard scoreboard = player.getRoom().getScoreboard();
-        Set<ScoreboardLine> scores = scoreboard.getScores();
-
-        // find the player's scoreboard-line or create a new line in the scoreboard
-        ScoreboardLine scoreboardLine = scores.stream()
-                .filter(score -> score.getPlayer().equals(player))
-                .findFirst()
-                .orElseGet(() -> {
-                    ScoreboardLine newScoreboardLine = new ScoreboardLine(player);
-                    scores.add(newScoreboardLine);
-                    return newScoreboardLine;
-                });
-
-        // add the points
-        scoreboardLine.setScore(scoreboardLine.getScore() + points);
-
-        // Save scoreboard to DB & return saved object
-        return scoreboardRepository.save(scoreboard);
+    /**
+     * @param game The game for which to start the loop.
+     */
+    public void startGameLoop(Game game) {
     }
 
+    /**
+     * Receives a click from a player and adds it to the game state.
+     * @param headerAccessor The header accessor for the websocket message.
+     * @throws InvalidSession If the session is invalid.
+     * @throws RoomNotInProgress If the room is not in progress.
+     * @throws WrongGame If the current game is not this game.
+     * @throws GameFinished If the game is not currently in progress.
+     */
     @Transactional
     public void click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, RoomNotInProgress, WrongGame, GameFinished {
         Player player = playerService.findBySessionOrThrowNonDTO(headerAccessor);
@@ -120,40 +110,95 @@ public class PerfectClickerService {
         messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICKS, room.getID(), dto);
     }
 
-    public void startGameLoop(Room room) {
+    /**
+     * Adds points to the player's score in the scoreboard
+     * @param player player to add points to
+     * @param points points to add
+     * @return the updated scoreboard
+     */
+    @Transactional
+    public Scoreboard addScoreboardPoints(Player player, int points) {
+        Scoreboard scoreboard = player.getRoom().getScoreboard();
+        Set<ScoreboardLine> scores = scoreboard.getScores();
+
+        // find the player's scoreboard-line or create a new line in the scoreboard
+        ScoreboardLine scoreboardLine = scores.stream()
+                .filter(score -> score.getPlayer().equals(player))
+                .findFirst()
+                .orElseGet(() -> {
+                    ScoreboardLine newScoreboardLine = new ScoreboardLine(player);
+                    scores.add(newScoreboardLine);
+                    return newScoreboardLine;
+                });
+
+        // add the points
+        scoreboardLine.setScore(scoreboardLine.getScore() + points);
+
+        // Save scoreboard to DB & return saved object
+        return scoreboardRepository.save(scoreboard);
     }
 
-    @Transactional
-    public void distributePoints(Room room, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
-                                 int thirdPlaceBonus) {
-        // Distribute points to players:
-        // Players that clicked over the target get 0 points.
-        // Remaining players get 100 points * (their clicks performed / target clicks)
-        // First player gets 100 points extra. Second player gets 50 points extra. Third player gets 25 points extra.
-        // if players have the same amount of clicks, winner is the one who's last click was earlier
-        PerfectClicker game = (PerfectClicker) room.getCurrentGame();
-        List<GameStatePerfectClicker> state = game.getState().stream()
-                .filter(s -> s.getClicks() <= game.getTargetClicks())
+    /**
+     * Returns players in descending order based on their performance in the game.
+     */
+    @Transactional(readOnly = true)
+    public List<Player> getTopPlayers(Game game) {
+        // Those with the most clicks will be first.
+        // Those with same clicks will be sorted by time of last click (earlier is better)
+        return ((PerfectClicker) game)
+                .getState().stream()
                 .sorted((s1, s2) -> {
                     if (s1.getClicks() == s2.getClicks()) {
                         return s1.getLastClick().compareTo(s2.getLastClick());
                     }
                     return s2.getClicks() - s1.getClicks();
                 })
+                .map(GameStatePerfectClicker::getPlayer)
                 .collect(Collectors.toList());
-        for (int i = 0; i < state.size(); i++) {
-            GameStatePerfectClicker s = state.get(i);
-            // Calculate points
-            int points = (int) (maxPoints * (s.getClicks() / (double) game.getTargetClicks()));
-            // add bonus points
-            if (i == 0) {
+
+
+    }
+
+
+    /**
+     * Adds points to the scoreboard based on the player's performance in the game.
+     *
+     * @param theGame the game to calculate points for
+     * @param maxPoints The points to be given to players with excellent performance
+     * @param firstPlaceBonus The bonus points to be given to the player with the best performance
+     * @param secondPlaceBonus The bonus points to be given to the player with the second-best performance
+     * @param thirdPlaceBonus The bonus points to be given to the player with the third-best performance
+     */
+    @Transactional
+    public void distributePoints(Game theGame, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
+                                 int thirdPlaceBonus) {
+        // Distribute points to players:
+        // Players that clicked over the target get 0 points.
+        // Remaining players get 100 points * (their clicks performed / target clicks)
+        // First player gets 100 points extra. Second player gets 50 points extra. Third player gets 25 points extra.
+        // if players have the same amount of clicks, winner is the one who's last click was earlier
+        PerfectClicker game = (PerfectClicker) theGame;
+        List<Player> playersRankedDesc = self.getTopPlayers(game);
+
+        for (Player player: playersRankedDesc) {
+            Optional<GameStatePerfectClicker> state = game.getState().stream()
+                    .filter(s -> s.getPlayer().equals(player))
+                    .findFirst();
+            int clicks = state.map(GameStatePerfectClicker::getClicks).orElse(0);
+            int points = 0;
+            // Add points based on clicks performed. If clicks performed is over the target, no points are added.
+            if (clicks <= game.getTargetClicks()) {
+                points = (int) Math.round(maxPoints * (clicks / (double) game.getTargetClicks()));
+            }
+            // Add bonus points
+            if (playersRankedDesc.indexOf(player) == 0) {
                 points += firstPlaceBonus;
-            } else if (i == 1) {
+            } else if (playersRankedDesc.indexOf(player) == 1) {
                 points += secondPlaceBonus;
-            } else if (i == 2) {
+            } else if (playersRankedDesc.indexOf(player) == 2) {
                 points += thirdPlaceBonus;
             }
-            addScoreboardPoints(s.getPlayer(), points);
+            self.addScoreboardPoints(player, points);
         }
     }
 

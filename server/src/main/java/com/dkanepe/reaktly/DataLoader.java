@@ -2,7 +2,6 @@ package com.dkanepe.reaktly;
 
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
-import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.repositories.RoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;

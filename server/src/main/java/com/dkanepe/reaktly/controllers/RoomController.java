@@ -73,7 +73,7 @@ public class RoomController {
     }
 
     /**
-     * Create a new room (and player)
+     * Create a new room (and player as host)
      * @param name player name
      * @return The player (with session)
      */
@@ -83,7 +83,7 @@ public class RoomController {
     }
 
     /**
-     * Get room info 
+     * Get room info. It contains all information needed to display any state of the room (lobby, game, etc.).
      */
     @MessageMapping("room")
     @SendToUser("/queue/room")

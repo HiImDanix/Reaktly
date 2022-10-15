@@ -1,13 +1,13 @@
 package com.dkanepe.reaktly.models;
 
-import com.dkanepe.reaktly.dto.PlayerDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter @Setter @NoArgsConstructor @ToString

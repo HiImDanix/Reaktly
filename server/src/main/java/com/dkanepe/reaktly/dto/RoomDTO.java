@@ -13,6 +13,5 @@ public class RoomDTO {
     private PlayerDTO host;
     private Room.Status status;
     private long startTime;
-
     private GameDTO currentGame;
 }
