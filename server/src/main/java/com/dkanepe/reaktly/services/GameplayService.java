@@ -158,7 +158,7 @@ public class GameplayService {
 
         new Thread(() -> {
             switch (gameType) {
-                case PERFECT_CLICKER -> perfectClickerService.startGameLoop(game);
+                case PERFECT_CLICKER -> perfectClickerService.startGameLoop((PerfectClicker) game);
                 default -> log.error("Game type not supported: {}", gameType);
             }
         }).start();
