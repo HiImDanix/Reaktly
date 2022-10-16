@@ -225,30 +225,27 @@ public class GameplayService {
     }
 
     /**
-     * Finish the game, distribute points & inform the players.
+     * Finish the game, distribute points, get the results (statistics, scoreboard) & inform the players.
      * @param room The room to inform the players of.
      */
     @Transactional
     public void gameFinished(Room room) {
         room = entityManager.find(Room.class, room.getID());
+
+        // Mark the game as finished.
         Game game = room.getCurrentGame();
         game.setStatus(Game.GameStatus.FINISHED);
-        perfectClickerService.distributePoints((PerfectClicker) game, 100, 100, 50, 25);
         gameRepository.save(game);
-        TableDTO tableDTO = perfectClickerService.getStatistics(game);
-        TableDTO scoreboard;
-        String[] headers = {"Player", "Score"};
-        String[][] data;
-        List<ScoreboardLine> lines = room.getScoreboard().getScores().stream()
-                .sorted(Comparator.comparingInt(ScoreboardLine::getScore).reversed())
-                .collect(Collectors.toList());
-        data = new String[lines.size()][2];
-        for (int i = 0; i < lines.size(); i++) {
-            data[i][0] = lines.get(i).getPlayer().getName();
-            data[i][1] = String.valueOf(lines.get(i).getScore());
-        }
-        scoreboard = new TableDTO(headers, data);
-        GameEndDTO gameEndDTO = new GameEndDTO(scoreboard,tableDTO);
+
+        // Distribute points.
+        perfectClickerService.distributePoints((PerfectClicker) game, 100, 100, 50, 25);
+
+        // Get the game's statistics DTO & room's scoreboard DTO.
+        TableDTO statisticsDTO = perfectClickerService.getStatistics(game);
+        TableDTO scoreboard = mapper.scoreboardToTableDTO(room.getScoreboard());
+
+        // Send the game's statistics & overall scoreboard to the players.
+        GameEndDTO gameEndDTO = new GameEndDTO(scoreboard, statisticsDTO);
         messaging.sendToGame(GameplayActions.GAME_END, room.getID(), gameEndDTO);
     }
 

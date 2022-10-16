@@ -70,7 +70,7 @@ public interface GameService<T extends Game> {
     }
 
     /**
-     * Returns a sorted list of players in desc order based on their performance in the game along with their stats.
+     * Returns a sorted table of players in desc order based on their performance in the game along with their stats.
      * @param theGame the game to get the stats for
      */
     TableDTO getStatistics(Game theGame);

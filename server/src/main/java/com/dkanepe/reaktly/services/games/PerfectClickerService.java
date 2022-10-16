@@ -108,23 +108,21 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
     @Transactional
     public void distributePoints(PerfectClicker game, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
                                  int thirdPlaceBonus) {
-        // Distribute points to players:
-        // Players that clicked over the target get 0 points.
-        // Remaining players get 100 points * (their clicks performed / target clicks)
-        // First player gets 100 points extra. Second player gets 50 points extra. Third player gets 25 points extra.
-        // if players have the same amount of clicks, winner is the one who's last click was earlier
+        // Get the players ranked by their performance in the game.
         List<Player> playersRankedDesc = self.getTopPlayers(game);
 
         for (Player player : playersRankedDesc) {
+            // Find the player's game state.
             Optional<GameStatePerfectClicker> state = game.getState().stream()
                     .filter(s -> s.getPlayer().equals(player))
                     .findFirst();
             int clicks = state.map(GameStatePerfectClicker::getClicks).orElse(0);
             int points = 0;
-            // Add points based on clicks performed. If clicks performed is over the target, no points are added.
+            // Add points based on clicks performed. If clicks performed > target, no points are added.
             if (clicks <= game.getTargetClicks()) {
                 points = (int) Math.round(maxPoints * (clicks / (double) game.getTargetClicks()));
             }
+            // Add bonus points based on rank.
             if (playersRankedDesc.indexOf(player) == 0) {
                 points += firstPlaceBonus;
             } else if (playersRankedDesc.indexOf(player) == 1) {
@@ -132,6 +130,7 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
             } else if (playersRankedDesc.indexOf(player) == 2) {
                 points += thirdPlaceBonus;
             }
+            // Add the points to the player's score in the scoreboard.
             self.addScoreboardPoints(player, points, scoreboardRepository);
         }
     }
@@ -145,23 +144,26 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
         // TODO: Find a better data structure than this. Should include Player (obj) as 1st, and clicks as 2nd.
         //  First column should be required and standardized.
         PerfectClicker game = (PerfectClicker) theGame;
+        // Table headers
         String[] headers = new String[]{"Player", "Clicks", "Clicks/Sec"};
+        // Get the players ranked by their performance in the game.
         List<Player> topPlayers = self.getTopPlayers(game);
         String[][] rows = new String[topPlayers.size()][headers.length];
         for (int i = 0; i < topPlayers.size(); i++) {
             Player player = topPlayers.get(i);
+            // Find the player's game state.
             Optional<GameStatePerfectClicker> state = game.getState().stream()
                     .filter(s -> s.getPlayer().equals(player))
                     .findFirst();
             int clicks = state.map(GameStatePerfectClicker::getClicks).orElse(0);
+            // First column: Player name
             rows[i][0] = player.getName();
+            // Second column: Clicks
             rows[i][1] = clicks > game.getTargetClicks() ? "Too many" : String.valueOf(clicks);
-            // clicks per second
-            long startTime = game.getStartTime();
-            long endTime = state.get().getLastClick();
-            double clicksPerSecond = clicks > 0 ? clicks / ((endTime - startTime) / 1000.0) : 0;
-            // debug
-            log.info("Clicks: {}, start: {}, end: {}, clicksPerSecond: {}", clicks, startTime, endTime, clicksPerSecond);
+            // Third column: Clicks per second
+            long gameStartTime = game.getStartTime();
+            long lastClickTime = state.get().getLastClick();
+            double clicksPerSecond = clicks > 0 ? clicks / ((lastClickTime - gameStartTime) / 1000.0) : 0;
             rows[i][2] = String.format("%.2f/s", clicksPerSecond);
         }
         return new TableDTO(headers, rows);
@@ -194,7 +196,7 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
 
         PerfectClicker game = (PerfectClicker) player.getRoom().getCurrentGame();
 
-        // add 1 click for the player
+        // add to the player's game state
         GameStatePerfectClicker state = game.getState().stream()
                 .filter(s -> s.getPlayer().equals(player))
                 .findFirst()
