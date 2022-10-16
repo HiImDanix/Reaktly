@@ -14,17 +14,17 @@ import java.util.Set;
 /**
  * A service that handles the game logic.
  */
-public interface GameService<T extends Game> {
+public interface GameService {
     /**
      * @param game The game for which to start the loop.
      */
-    void startGameLoop(T game);
+    void startGameLoop(Game game);
 
     /**
      * Returns players in descending order based on their performance in the game.
      */
     @Transactional(readOnly = true)
-    List<Player> getTopPlayers(T game);
+    List<Player> getTopPlayers(Game game);
 
     /**
      * Adds points to the scoreboard based on the player's performance in the game.
@@ -36,7 +36,7 @@ public interface GameService<T extends Game> {
      * @param thirdPlaceBonus The bonus points to be given to the player with the third-best performance
      */
     @Transactional
-    void distributePoints(T game, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
+    void distributePoints(Game game, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
                           int thirdPlaceBonus);
 
     /**

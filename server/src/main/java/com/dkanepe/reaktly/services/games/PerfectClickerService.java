@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class PerfectClickerService implements GameService<PerfectClicker> {
+public class PerfectClickerService implements GameService {
 
     private final ScoreboardRepository scoreboardRepository;
     private final MapStructMapper mapper;
@@ -63,7 +63,7 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
      * {@inheritDoc}
      */
     @Override
-    public void startGameLoop(PerfectClicker game) {
+    public void startGameLoop(Game theGame) {
     }
 
     /**
@@ -71,7 +71,9 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<Player> getTopPlayers(PerfectClicker game) {
+    public List<Player> getTopPlayers(Game theGame) {
+        PerfectClicker game = (PerfectClicker) theGame;
+
         // Those with the most clicks will be first.
         // Those with same clicks will be sorted by time of last click (earlier is better)
         // Those who have clicked more than the target be ranked last.
@@ -106,8 +108,9 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
      */
     @Override
     @Transactional
-    public void distributePoints(PerfectClicker game, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
+    public void distributePoints(Game theGame, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
                                  int thirdPlaceBonus) {
+        PerfectClicker game = (PerfectClicker) theGame;
         // Get the players ranked by their performance in the game.
         List<Player> playersRankedDesc = self.getTopPlayers(game);
 
