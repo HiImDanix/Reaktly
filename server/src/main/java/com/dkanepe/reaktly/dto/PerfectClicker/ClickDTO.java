@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 public class ClickDTO {
     private Long playerID;
     private int clicks;
-    private LocalDateTime timeClicked;
+    private long timeClicked;
 
-    public ClickDTO(Player player, int Clicks, LocalDateTime timeClicked) {
+    public ClickDTO(Player player, int Clicks, long timeClicked) {
         this.playerID = player.getID();
         this.clicks = Clicks;
         this.timeClicked = timeClicked;

@@ -3,10 +3,13 @@ package com.dkanepe.reaktly.services;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.actions.RoomActions;
+import com.dkanepe.reaktly.dto.GameEndDTO;
 import com.dkanepe.reaktly.dto.GameStartDTO;
+import com.dkanepe.reaktly.dto.TableDTO;
 import com.dkanepe.reaktly.exceptions.*;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
+import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
 import com.dkanepe.reaktly.repositories.GameRepository;
@@ -20,6 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -85,8 +91,8 @@ public class GameplayService {
         // Take the next game from the list and make it the current game.
         self.setNextGameAsCurrent(room);
         // Show current game's instructions to the players & give them time to read them.
-        long instructionsEndTime = self.gameInstructions(room);
-        sleepTime = instructionsEndTime - System.currentTimeMillis();
+        long gameStartTime = self.gameInstructions(room);
+        sleepTime = gameStartTime - System.currentTimeMillis();
         try {
             Thread.sleep(sleepTime);
         } catch (InterruptedException e) {
@@ -94,7 +100,29 @@ public class GameplayService {
         }
 
         // Start the game & inform the players.
-        startCurrentGame(room);
+        Thread gameLoopThread = startCurrentGame(room);
+
+        // Wait for the game to finish.
+        gameLoopThread.interrupt();
+        self.waitForGameToFinish(room); // using transaction, because no hibernate session so currGame cannot be accessed.
+
+        // Game has finished. Inform the players.
+        gameLoopThread.interrupt();
+        self.gameFinished(room);
+    }
+
+    /**
+     * Wait until the game has finished.
+     */
+    @Transactional
+    public void waitForGameToFinish(Room room) {
+        room = entityManager.find(Room.class, room.getID());
+        try {
+            Thread.sleep(room.getCurrentGame().getEndTime() - System.currentTimeMillis());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
     }
 
     /**
@@ -122,6 +150,7 @@ public class GameplayService {
         room.setCurrentGame(game);
         room.getGames().remove(game);
         roomRepository.save(room);
+        System.out.println("Game starts at: " + game.getStartTime());
     }
 
     /**
@@ -145,8 +174,9 @@ public class GameplayService {
     /**
      * Start the current game in the room & inform (ping) the players that the game has started.
      * @param room The room for which to start the current game.
+     * @return The thread that is running the game loop.
      */
-    private void startCurrentGame(Room room) {
+    private Thread startCurrentGame(Room room) {
         room = entityManager.find(Room.class, room.getID());
         Game game = room.getCurrentGame();
         game.setStatus(Game.GameStatus.IN_PROGRESS);
@@ -156,12 +186,14 @@ public class GameplayService {
         // Start the specific game's game-loop in a new thread.
         Game.GameType gameType = room.getCurrentGame().getType();
 
-        new Thread(() -> {
+        Thread gameLoop = new Thread(() -> {
             switch (gameType) {
                 case PERFECT_CLICKER -> perfectClickerService.startGameLoop((PerfectClicker) game);
                 default -> log.error("Game type not supported: {}", gameType);
             }
-        }).start();
+        });
+        gameLoop.start();
+        return gameLoop;
     }
 
     /**
@@ -190,6 +222,34 @@ public class GameplayService {
         if (room.getGames().size() < 1) {
             throw new NotEnoughGames("You can't start playing without adding any mini-games!");
         }
+    }
+
+    /**
+     * Finish the game, distribute points & inform the players.
+     * @param room The room to inform the players of.
+     */
+    @Transactional
+    public void gameFinished(Room room) {
+        room = entityManager.find(Room.class, room.getID());
+        Game game = room.getCurrentGame();
+        game.setStatus(Game.GameStatus.FINISHED);
+        perfectClickerService.distributePoints((PerfectClicker) game, 100, 100, 50, 25);
+        gameRepository.save(game);
+        TableDTO tableDTO = perfectClickerService.getStatistics(game);
+        TableDTO scoreboard;
+        String[] headers = {"Player", "Score"};
+        String[][] data;
+        List<ScoreboardLine> lines = room.getScoreboard().getScores().stream()
+                .sorted(Comparator.comparingInt(ScoreboardLine::getScore).reversed())
+                .collect(Collectors.toList());
+        data = new String[lines.size()][2];
+        for (int i = 0; i < lines.size(); i++) {
+            data[i][0] = lines.get(i).getPlayer().getName();
+            data[i][1] = String.valueOf(lines.get(i).getScore());
+        }
+        scoreboard = new TableDTO(headers, data);
+        GameEndDTO gameEndDTO = new GameEndDTO(scoreboard,tableDTO);
+        messaging.sendToGame(GameplayActions.GAME_END, room.getID(), gameEndDTO);
     }
 
 }

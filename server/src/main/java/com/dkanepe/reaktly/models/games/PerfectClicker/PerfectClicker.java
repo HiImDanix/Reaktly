@@ -21,11 +21,7 @@ public class PerfectClicker extends Game {
     @Transient
     private String title = "Perfect Clicker";
 
-
-
     private int targetClicks;
-    private int gameDurationMillis;
-    private int instructionsDurationMillis;
 
     // TODO: Make it work without eager loading.
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

@@ -16,7 +16,6 @@ public abstract class Game {
         NOT_STARTED,
         INSTRUCTIONS,
         IN_PROGRESS,
-        SCOREBOARD,
         FINISHED
     }
 

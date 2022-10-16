@@ -3,16 +3,15 @@ import {useEffect, useState} from "react";
 import Instructions from "./Instructions";
 import GameType from "./GameType";
 import PerfectClickerGame from "./games/PerfectClickerGame";
+import Scoreboard from "./Scoreboard";
 
 function Game(props) {
 
     const GAME_STATUS = {
         INSTRUCTIONS: "INSTRUCTIONS",
         IN_PROGRESS: "IN_PROGRESS",
-        SCOREBOARD: "SCOREBOARD",
         FINISHED: "FINISHED"
     }
-
 
     const [startTime, setStartTime] = useState(props.start_time);
     const [endTime, setEndTime] = useState(props.end_time);
@@ -24,21 +23,31 @@ function Game(props) {
     const [title, setTitle] = useState(props.title);
     const [type, setType] = useState(props.type);
     const [game, setGame] = useState(props.game);
+    const [scoreboard, setScoreboard] = useState(props.scoreboard);
+    const [gameStats, setGameStats] = useState(props.game_stats);
 
 
     useEffect(() => {
         const GAMEPLAY_PREFIX = '/topic/room/' + props.roomID + '/gameplay/';
-        props.setTimer(startTime);
+        if (status === GAME_STATUS.INSTRUCTIONS) {
+            props.setTimer(startTime);
+        } else if (status === GAME_STATUS.IN_PROGRESS) {
+            props.setTimer(endTime);
+        } else if (status === GAME_STATUS.FINISHED) {
+            props.setTimer(finish_time);
+        }
 
         props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_START_PING', (payload) => {
             props.setTimer(endTime);
             setStatus(GAME_STATUS.IN_PROGRESS);
         });
-        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END_SCORES', (payload) => {
-            setStatus(GAME_STATUS.SCOREBOARD);
-        });
-        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_FINISHED_SCOREBOARD', (payload) => {
+        props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END', (payload) => {
+            const gameEnd = JSON.parse(payload.body);
+            console.log(gameEnd);
+            setScoreboard(gameEnd.scoreboard);
+            setGameStats(gameEnd.statistics);
             setStatus(GAME_STATUS.FINISHED);
+            props.setTimer(finish_time);
         });
 
         // subscribe to game specific events
@@ -58,10 +67,8 @@ function Game(props) {
                 default:
                     return (<div>Error: Unknown game type</div>);
             }
-        case GAME_STATUS.SCOREBOARD:
-            return (<>Scoreboard</>);
         case GAME_STATUS.FINISHED:
-            return (<>Game finished</>);
+            return (<Scoreboard scoreboard={scoreboard} gameStats={gameStats}></Scoreboard>);
         default:
             return (<>Error: game status not recognised</>);
     }

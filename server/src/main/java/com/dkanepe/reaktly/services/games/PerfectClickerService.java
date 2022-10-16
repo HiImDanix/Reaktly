@@ -3,6 +3,7 @@ package com.dkanepe.reaktly.services.games;
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.GameplayActions;
 import com.dkanepe.reaktly.dto.PerfectClicker.ClickDTO;
+import com.dkanepe.reaktly.dto.TableDTO;
 import com.dkanepe.reaktly.exceptions.GameFinished;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.exceptions.RoomNotInProgress;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -72,18 +74,30 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
     public List<Player> getTopPlayers(PerfectClicker game) {
         // Those with the most clicks will be first.
         // Those with same clicks will be sorted by time of last click (earlier is better)
+        // Those who have clicked more than the target be ranked last.
         return game
                 .getState().stream()
                 .sorted((s1, s2) -> {
                     if (s1.getClicks() == s2.getClicks()) {
-                        return s1.getLastClick().compareTo(s2.getLastClick());
+                        return Long.compare(s1.getLastClick(), s2.getLastClick());
                     }
                     return s2.getClicks() - s1.getClicks();
                 })
+                .sorted((s1, s2) -> {
+                    if (s1.getClicks() > game.getTargetClicks() && s2.getClicks() > game.getTargetClicks()) {
+                        return 0;
+                    }
+                    if (s1.getClicks() > game.getTargetClicks()) {
+                        return 1;
+                    }
+
+                    if (s2.getClicks() > game.getTargetClicks()) {
+                        return -1;
+                    }
+                    return 0;
+                })
                 .map(GameStatePerfectClicker::getPlayer)
                 .collect(Collectors.toList());
-
-
     }
 
 
@@ -101,7 +115,7 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
         // if players have the same amount of clicks, winner is the one who's last click was earlier
         List<Player> playersRankedDesc = self.getTopPlayers(game);
 
-        for (Player player: playersRankedDesc) {
+        for (Player player : playersRankedDesc) {
             Optional<GameStatePerfectClicker> state = game.getState().stream()
                     .filter(s -> s.getPlayer().equals(player))
                     .findFirst();
@@ -123,12 +137,44 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public TableDTO getStatistics(Game theGame) {
+        // TODO: Find a better data structure than this. Should include Player (obj) as 1st, and clicks as 2nd.
+        //  First column should be required and standardized.
+        PerfectClicker game = (PerfectClicker) theGame;
+        String[] headers = new String[]{"Player", "Clicks", "Clicks/Sec"};
+        List<Player> topPlayers = self.getTopPlayers(game);
+        String[][] rows = new String[topPlayers.size()][headers.length];
+        for (int i = 0; i < topPlayers.size(); i++) {
+            Player player = topPlayers.get(i);
+            Optional<GameStatePerfectClicker> state = game.getState().stream()
+                    .filter(s -> s.getPlayer().equals(player))
+                    .findFirst();
+            int clicks = state.map(GameStatePerfectClicker::getClicks).orElse(0);
+            rows[i][0] = player.getName();
+            rows[i][1] = clicks > game.getTargetClicks() ? "Too many" : String.valueOf(clicks);
+            // clicks per second
+            long startTime = game.getStartTime();
+            long endTime = state.get().getLastClick();
+            double clicksPerSecond = clicks > 0 ? clicks / ((endTime - startTime) / 1000.0) : 0;
+            // debug
+            log.info("Clicks: {}, start: {}, end: {}, clicksPerSecond: {}", clicks, startTime, endTime, clicksPerSecond);
+            rows[i][2] = String.format("%.2f/s", clicksPerSecond);
+        }
+        return new TableDTO(headers, rows);
+    }
+
+    /**
      * Receives a click from a player and adds it to the game state.
+     *
      * @param headerAccessor The header accessor for the websocket message.
-     * @throws InvalidSession If the session is invalid.
+     * @throws InvalidSession    If the session is invalid.
      * @throws RoomNotInProgress If the room is not in progress.
-     * @throws WrongGame If the current game is not this game.
-     * @throws GameFinished If the game is not currently in progress.
+     * @throws WrongGame         If the current game is not this game.
+     * @throws GameFinished      If the game is not currently in progress.
      */
     @Transactional
     public void click(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession, RoomNotInProgress, WrongGame, GameFinished {
@@ -158,11 +204,12 @@ public class PerfectClickerService implements GameService<PerfectClicker> {
                     return newState;
                 });
         state.setClicks(state.getClicks() + 1);
-        state.setLastClick(LocalDateTime.now());
+        state.setLastClick(System.currentTimeMillis());
         gameRepository.save(game);
 
         // inform players of the click
-        ClickDTO dto = new ClickDTO(state.getPlayer(),state.getClicks(), state.getLastClick());
+        ClickDTO dto = new ClickDTO(state.getPlayer(), state.getClicks(), state.getLastClick());
         messaging.sendToGame(GameplayActions.PERFECT_CLICKER_CLICKS, room.getID(), dto);
     }
 }
+

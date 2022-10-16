@@ -30,7 +30,7 @@ public class GameStatePerfectClicker {
 
     private int clicks;
 
-    private LocalDateTime lastClick;
+    private long lastClick;
 
 
 }

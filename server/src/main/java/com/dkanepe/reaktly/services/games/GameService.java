@@ -1,5 +1,6 @@
 package com.dkanepe.reaktly.services.games;
 
+import com.dkanepe.reaktly.dto.TableDTO;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Scoreboard;
 import com.dkanepe.reaktly.models.ScoreboardLine;
@@ -67,4 +68,13 @@ public interface GameService<T extends Game> {
         // Save scoreboard to DB & return saved object
         return scoreboardRepository.save(scoreboard);
     }
+
+    /**
+     * Returns a sorted list of players in desc order based on their performance in the game along with their stats.
+     * @param theGame the game to get the stats for
+     */
+    TableDTO getStatistics(Game theGame);
+
+
+
 }
