@@ -14,4 +14,5 @@ public class RoomDTO {
     private Room.Status status;
     private long startTime;
     private GameDTO currentGame;
+    private TableDTO scoreboard;
 }

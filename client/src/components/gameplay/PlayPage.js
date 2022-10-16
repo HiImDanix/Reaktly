@@ -30,6 +30,7 @@ function PlayPage() {
     const [stompClient, setStompClient] = useState(new Websocket());
     const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
     const [gameState, setGameState] = useState(null);
+    const [scoreboard, setScoreboard] = useState(null);
 
     // Redirect state
     const location = useLocation();
@@ -68,8 +69,9 @@ function PlayPage() {
                 setRoomID(room.id);
                 setPlayers(room.players);
                 setRoomCode(room.code);
-                setRoomStatus(room.status);
+                setScoreboard(room.scoreboard);
                 setGameState(room.current_game);
+                setRoomStatus(room.status);
                 if (room.status === ROOM_STATUS.ABOUT_TO_START) {
                     setTimer(room.start_time);
                 }
@@ -121,8 +123,9 @@ function PlayPage() {
                 </div>
             </div>
 
-            }{roomStatus === ROOM_STATUS.IN_PROGRESS &&
-            <Game stompClient={stompClient} roomID={roomID} myID={myID} setTimer={setTimer} {...gameState}></Game>
+            }{(roomStatus === ROOM_STATUS.IN_PROGRESS || roomStatus === ROOM_STATUS.FINISHED) &&
+            <Game stompClient={stompClient} roomID={roomID} myID={myID}
+                  setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard} {...gameState}></Game>
             }
         </div>
     )

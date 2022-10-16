@@ -15,7 +15,7 @@ public class GameDTO {
     private String instructions;
     private String shortInstructions;
     private Object game;
-
+    private TableDTO statistics;
 
     public GameDTO(long ID, Game.GameType type) {
         this.ID = ID;

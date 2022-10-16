@@ -35,7 +35,7 @@ public class RoomController {
     /**
      * Get a player by session ID (i.e. in case of reconnecting)
      * @param session
-     * @return HttpStatus.OK if valid, HttpStatus.NOT_FOUND if not
+     * @return PlayerDTO, OR 404 if not found
      */
     @GetMapping("/player/session/{session}")
     public @ResponseBody ResponseEntity<PlayerDTO> getPlayerBySession(@PathVariable String session) {

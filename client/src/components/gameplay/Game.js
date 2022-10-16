@@ -23,8 +23,7 @@ function Game(props) {
     const [title, setTitle] = useState(props.title);
     const [type, setType] = useState(props.type);
     const [game, setGame] = useState(props.game);
-    const [scoreboard, setScoreboard] = useState(props.scoreboard);
-    const [gameStats, setGameStats] = useState(props.game_stats);
+    const [gameStats, setGameStats] = useState(props.statistics);
 
 
     useEffect(() => {
@@ -44,7 +43,7 @@ function Game(props) {
         props.stompClient.subscribe(GAMEPLAY_PREFIX + 'GAME_END', (payload) => {
             const gameEnd = JSON.parse(payload.body);
             console.log(gameEnd);
-            setScoreboard(gameEnd.scoreboard);
+            props.setScoreboard(gameEnd.scoreboard);
             setGameStats(gameEnd.statistics);
             setStatus(GAME_STATUS.FINISHED);
             props.setTimer(finish_time);
@@ -68,7 +67,7 @@ function Game(props) {
                     return (<div>Error: Unknown game type</div>);
             }
         case GAME_STATUS.FINISHED:
-            return (<Scoreboard scoreboard={scoreboard} gameStats={gameStats}></Scoreboard>);
+            return (<Scoreboard scoreboard={props.scoreboard} gameStats={gameStats}></Scoreboard>);
         default:
             return (<>Error: game status not recognised</>);
     }
@@ -89,6 +88,8 @@ Game.propTypes = {
     stompClient: PropTypes.object.isRequired,
     roomID: PropTypes.number.isRequired,
     myID: PropTypes.number.isRequired,
+    scoreboard: PropTypes.object.isRequired,
+    setScoreboard: PropTypes.func.isRequired,
 }
 
 export default Game;

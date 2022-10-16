@@ -10,49 +10,59 @@ import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.GameStatePerfectClicker;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
-import com.dkanepe.reaktly.services.games.GameService;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
-public interface MapStructMapper {
-    PlayerDTO playerToPlayerDTO(Player player);
+public abstract class MapStructMapper {
 
-    PersonalPlayerDTO playerToPersonalPlayerDTO(Player player);
+    @Autowired
+    @Lazy
+    PerfectClickerService perfectClickerService;
 
-    RoomDTO roomToRoomDTO(Room room);
+    public abstract PlayerDTO playerToPlayerDTO(Player player);
+
+    public abstract PersonalPlayerDTO playerToPersonalPlayerDTO(Player player);
+
+    public abstract RoomDTO roomToRoomDTO(Room room);
 
     @AfterMapping
-    default void afterRoomToRoomDTO(Room room, @MappingTarget RoomDTO roomDTO) {
+    public void afterRoomToRoomDTO(Room room, @MappingTarget RoomDTO roomDTO) {
         Game currentGame = room.getCurrentGame();
+        // TODO: Refactor to use factory pattern
         if (currentGame instanceof PerfectClicker) {
             roomDTO.setCurrentGame(gameToGameDTO((PerfectClicker) currentGame));
         }
     }
 
-    GameStartDTO roomToGameStartedDTO(Room room);
+    public abstract GameStartDTO roomToGameStartedDTO(Room room);
 
-    PerfectClickerDTO perfectClickerToPerfectClickerDTO(PerfectClicker perfectClicker);
+    public abstract PerfectClickerDTO perfectClickerToPerfectClickerDTO(PerfectClicker perfectClicker);
 
-    List<PerfectClickerGameStateDTO> perfectClickerGameStateToDTO(List<GameStatePerfectClicker> gameStatePerfectClickers);
+    public abstract List<PerfectClickerGameStateDTO> perfectClickerGameStateToDTO(List<GameStatePerfectClicker> gameStatePerfectClickers);
 
-    GameDTO gameToGameDTO(PerfectClicker perfectClicker);
+    public abstract GameDTO gameToGameDTO(PerfectClicker perfectClicker);
 
     @AfterMapping
-    default void afterMappingGameToGameDTO(PerfectClicker perfectClicker, @MappingTarget GameDTO gameDTO){
+    public void afterMappingGameToGameDTO(PerfectClicker perfectClicker, @MappingTarget GameDTO gameDTO) {
+        gameDTO.setStatistics(perfectClickerService.getStatistics(perfectClicker));
+        // Debug
         gameDTO.setGame(perfectClickerToPerfectClickerDTO(perfectClicker));
     }
 
 
-    TableDTO scoreboardToTableDTO(Scoreboard scoreboard);
+    public abstract TableDTO scoreboardToTableDTO(Scoreboard scoreboard);
+
     @AfterMapping
-    default void afterMappingScoreboardToTableDTO(Scoreboard scoreboard, @MappingTarget TableDTO tableDTO) {
+    public void afterMappingScoreboardToTableDTO(Scoreboard scoreboard, @MappingTarget TableDTO tableDTO) {
         String[] headers = {"Player", "Score"};
         String[][] data;
         List<ScoreboardLine> lines = scoreboard.getScores().stream()
