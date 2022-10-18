@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -146,6 +147,7 @@ public class PerfectClickerService implements GameService {
     public TableDTO getStatistics(Game theGame) {
         // TODO: Find a better data structure than this. Should include Player (obj) as 1st, and clicks as 2nd.
         //  First column should be required and standardized.
+        //  Eventually move to the mapper.
         PerfectClicker game = (PerfectClicker) theGame;
         // Table headers
         String[] headers = new String[]{"Player", "Clicks", "Clicks/Sec"};
@@ -169,6 +171,8 @@ public class PerfectClickerService implements GameService {
             double clicksPerSecond = clicks > 0 ? clicks / ((lastClickTime - gameStartTime) / 1000.0) : 0;
             rows[i][2] = String.format("%.2f/s", clicksPerSecond);
         }
+        // TODO: This is a hotfix. Symptom: duplicate rows in the table. Cause: unknown.
+        rows = Arrays.stream(rows).distinct().toArray(String[][]::new);
         return new TableDTO(headers, rows);
     }
 
