@@ -78,6 +78,7 @@ public class PerfectClickerService implements GameService {
         // Those with the most clicks will be first.
         // Those with same clicks will be sorted by time of last click (earlier is better)
         // Those who have clicked more than the target be ranked last.
+        System.out.println("state: " + game.getState());
         return game
                 .getState().stream()
                 .sorted((s1, s2) -> {
@@ -100,6 +101,7 @@ public class PerfectClickerService implements GameService {
                     return 0;
                 })
                 .map(GameStatePerfectClicker::getPlayer)
+                .distinct() // TODO: This is a hotfix. Symptom: duplicate players in the list. Cause: unknown.
                 .collect(Collectors.toList());
     }
 
@@ -171,8 +173,6 @@ public class PerfectClickerService implements GameService {
             double clicksPerSecond = clicks > 0 ? clicks / ((lastClickTime - gameStartTime) / 1000.0) : 0;
             rows[i][2] = String.format("%.2f/s", clicksPerSecond);
         }
-        // TODO: This is a hotfix. Symptom: duplicate rows in the table. Cause: unknown.
-        rows = Arrays.stream(rows).distinct().toArray(String[][]::new);
         return new TableDTO(headers, rows);
     }
 

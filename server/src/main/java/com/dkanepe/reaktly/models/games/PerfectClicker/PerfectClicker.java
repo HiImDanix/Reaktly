@@ -26,6 +26,7 @@ public class PerfectClicker extends Game {
     // TODO: Make it work without eager loading.
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("clicks DESC, lastClick ASC")
+    @JoinColumn(name = "game_id")
     private List<GameStatePerfectClicker> state = new ArrayList<>();
 
     public PerfectClicker(int targetClicks) {

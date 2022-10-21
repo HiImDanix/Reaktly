@@ -116,10 +116,6 @@ public class GameplayService {
             gameLoopThread.interrupt();
             self.gameFinished(room, gameService);
 
-            // print current game finish time
-            long gameFinishTime = self.getCurrentGameFinishTime(room);
-            System.out.println("Game finished at: " + gameFinishTime);
-
             // Wait for players to look at the scoreboard & statistics.
             try {
                 Thread.sleep(self.getCurrentGameFinishTime(room) - System.currentTimeMillis());

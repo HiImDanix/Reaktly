@@ -27,8 +27,6 @@ function Game(props) {
 
 
     useEffect(() => {
-        console.log("props status: " + props.status);
-        console.log("Game status: " + status);
         const GAMEPLAY_PREFIX = '/topic/room/' + props.roomID + '/gameplay/';
         if (status === GAME_STATUS.INSTRUCTIONS) {
             props.setTimer(startTime);
@@ -59,7 +57,7 @@ function Game(props) {
         if (type === GameType.PERFECT_CLICKER) {
             props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICKS');
         }
-    }, [props]);
+    }, []);
 
     switch (status) {
         case GAME_STATUS.INSTRUCTIONS:

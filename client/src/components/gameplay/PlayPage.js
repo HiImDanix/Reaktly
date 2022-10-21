@@ -130,8 +130,10 @@ function PlayPage() {
             </div>
 
             }{(roomStatus === ROOM_STATUS.IN_PROGRESS || roomStatus === ROOM_STATUS.FINISHED) &&
+            // gameState ID is passed as key to force a re-render when the current game changes.
             <Game key={gameState.id} stompClient={stompClient} roomID={roomID} myID={myID}
-                  setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard} {...gameState} setFinished={setFinished}></Game>
+                  setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard}
+                  {...gameState} setFinished={setFinished}></Game>
             }
         </div>
     )
