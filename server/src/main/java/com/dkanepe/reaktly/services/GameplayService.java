@@ -89,30 +89,56 @@ public class GameplayService {
             e.printStackTrace();
         }
 
-        // Take the next game from the list and make it the current game.
-        self.setNextGameAsCurrent(room);
-        // Show current game's instructions to the players & give them time to read them.
-        long gameStartTime = self.gameInstructions(room);
-        sleepTime = gameStartTime - System.currentTimeMillis();
-        try {
-            Thread.sleep(sleepTime);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        // While there is a game to play, play it.
+        while (self.getGamesLeft(room) > 0) {
+            // Take the next game from the list and make it the current game.
+            self.setNextGameAsCurrent(room);
+            // Show current game's instructions to the players & give them time to read them.
+            long gameStartTime = self.gameInstructions(room);
+            sleepTime = gameStartTime - System.currentTimeMillis();
+            try {
+                Thread.sleep(sleepTime);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            // Get the specific current game's service
+            GameService gameService = self.getGameService(room);
+
+            // Start the game & inform the players.
+            Thread gameLoopThread = startCurrentGame(room, gameService);
+
+            // Wait for the game to finish.
+            gameLoopThread.interrupt();
+            self.waitForGameToFinish(room); // using transaction, because no hibernate session so currGame cannot be accessed.
+
+            // Game has finished. Inform the players.
+            gameLoopThread.interrupt();
+            self.gameFinished(room, gameService);
+
+            // print current game finish time
+            long gameFinishTime = self.getCurrentGameFinishTime(room);
+            System.out.println("Game finished at: " + gameFinishTime);
+
+            // Wait for players to look at the scoreboard & statistics.
+            try {
+                Thread.sleep(self.getCurrentGameFinishTime(room) - System.currentTimeMillis());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
+    }
 
-        // Get the specific current game's service
-        GameService gameService = self.getGameService(room);
+    @Transactional(readOnly = true)
+    public int getGamesLeft(Room room) {
+        room = entityManager.find(Room.class, room.getID());
+        return room.getGames().size();
+    }
 
-        // Start the game & inform the players.
-        Thread gameLoopThread = startCurrentGame(room, gameService);
-
-        // Wait for the game to finish.
-        gameLoopThread.interrupt();
-        self.waitForGameToFinish(room); // using transaction, because no hibernate session so currGame cannot be accessed.
-
-        // Game has finished. Inform the players.
-        gameLoopThread.interrupt();
-        self.gameFinished(room, gameService);
+    @Transactional(readOnly = true)
+    public long getCurrentGameFinishTime(Room room) {
+        room = entityManager.find(Room.class, room.getID());
+        return room.getCurrentGame().getFinishTime();
     }
 
     @Transactional(readOnly = true)
@@ -166,7 +192,6 @@ public class GameplayService {
         room.setCurrentGame(game);
         room.getGames().remove(game);
         roomRepository.save(room);
-        System.out.println("Game starts at: " + game.getStartTime());
     }
 
     /**
@@ -261,8 +286,8 @@ public class GameplayService {
         TableDTO scoreboard = mapper.scoreboardToTableDTO(room.getScoreboard());
 
         // Send the game's statistics & overall scoreboard to the players.
-        GameEndDTO gameEndDTO = new GameEndDTO(scoreboard, statisticsDTO);
+        boolean isLastGame = room.getGames().size() == 0;
+        GameEndDTO gameEndDTO = new GameEndDTO(scoreboard, statisticsDTO, isLastGame);
         messaging.sendToGame(GameplayActions.GAME_END, room.getID(), gameEndDTO);
     }
-
 }

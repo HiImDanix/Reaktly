@@ -22,7 +22,8 @@ public class DataLoader implements ApplicationRunner {
     public void run(ApplicationArguments args) {
 
         Room room = new Room(new Player("Dennis"));
-        room.getGames().add(new PerfectClicker());
+        room.getGames().add(new PerfectClicker(15));
+        room.getGames().add(new PerfectClicker(20));
         roomRepository.save(room);
         room.setCode("1234");
         roomRepository.save(room);

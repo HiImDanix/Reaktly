@@ -27,6 +27,8 @@ function Game(props) {
 
 
     useEffect(() => {
+        console.log("props status: " + props.status);
+        console.log("Game status: " + status);
         const GAMEPLAY_PREFIX = '/topic/room/' + props.roomID + '/gameplay/';
         if (status === GAME_STATUS.INSTRUCTIONS) {
             props.setTimer(startTime);
@@ -46,14 +48,18 @@ function Game(props) {
             props.setScoreboard(gameEnd.scoreboard);
             setGameStats(gameEnd.statistics);
             setStatus(GAME_STATUS.FINISHED);
-            props.setTimer(finish_time);
+            if (gameEnd.is_last_game) {
+                props.setFinished();
+            } else {
+                props.setTimer(finish_time);
+            }
         });
 
         // subscribe to game specific events
         if (type === GameType.PERFECT_CLICKER) {
             props.stompClient.subscribe(GAMEPLAY_PREFIX + 'PERFECT_CLICKER_CLICKS');
         }
-    }, []);
+    }, [props]);
 
     switch (status) {
         case GAME_STATUS.INSTRUCTIONS:

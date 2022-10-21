@@ -89,9 +89,9 @@ public class RoomService {
         player = playerRepository.save(player);
         System.out.println(player.getSession());
         Room room = new Room(player);
-        // add default game, for now.
-        Game game = new PerfectClicker(10);
-        room.getGames().add(game);
+        // add default games, for now.
+        room.getGames().add(new PerfectClicker(10));
+        room.getGames().add(new PerfectClicker(20));
         roomRepository.save(room);
         return mapper.playerToPersonalPlayerDTO(player);
     }

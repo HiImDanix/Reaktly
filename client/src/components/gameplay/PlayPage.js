@@ -45,6 +45,10 @@ function PlayPage() {
         return hostID === myID;
     }
 
+    function setFinished() {
+        setRoomStatus(ROOM_STATUS.FINISHED);
+    }
+
     useEffect(() => {
         // if state is null, redirect to homepage
         if (state === null) {
@@ -97,7 +101,9 @@ function PlayPage() {
                 const game = JSON.parse(payload.body);
                 console.log(game);
                 setGameState(game);
-                setRoomStatus(ROOM_STATUS.IN_PROGRESS);
+                if (roomStatus !== ROOM_STATUS.IN_PROGRESS) {
+                    setRoomStatus(ROOM_STATUS.IN_PROGRESS);
+                }
             });
         }
 
@@ -124,8 +130,8 @@ function PlayPage() {
             </div>
 
             }{(roomStatus === ROOM_STATUS.IN_PROGRESS || roomStatus === ROOM_STATUS.FINISHED) &&
-            <Game stompClient={stompClient} roomID={roomID} myID={myID}
-                  setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard} {...gameState}></Game>
+            <Game key={gameState.id} stompClient={stompClient} roomID={roomID} myID={myID}
+                  setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard} {...gameState} setFinished={setFinished}></Game>
             }
         </div>
     )
