@@ -54,6 +54,8 @@ function Lobby(props) {
                 </div>
             </div>
 
+            {props.isHost() && (
+
             <div className="container pt-3 pt-md-4 pt-lg-5">
 
                 <div className="row mb-3">
@@ -112,6 +114,7 @@ function Lobby(props) {
 
                 </div>
             </div>
+            )}
 
 
 
