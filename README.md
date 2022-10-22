@@ -22,7 +22,7 @@ A reaction-based party game platform.
 
 #### Demo
 
-Soon™
+Soon™. (22/10/2022) A video demonstration can be seen here: https://youtu.be/oTZa19e4GS8
 
 #### Features
 
