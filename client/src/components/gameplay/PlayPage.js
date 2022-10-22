@@ -28,7 +28,7 @@ function PlayPage() {
     const [players, setPlayers] = useState([]);
     const [timer, setTimer] = useState(null); // epoch to count down to
     const [stompClient, setStompClient] = useState(new Websocket());
-    const [roomStatus, setRoomStatus] = useState(ROOM_STATUS.LOBBY);
+    const [roomStatus, setRoomStatus] = useState(null);
     const [gameState, setGameState] = useState(null);
     const [scoreboard, setScoreboard] = useState(null);
 
@@ -120,12 +120,13 @@ function PlayPage() {
             <PlayNav name={name} timer={timer}></PlayNav>
             {roomStatus === ROOM_STATUS.LOBBY &&
             <Lobby name={name} session={session} roomID={roomID} players={players}
-                   roomCode={roomCode} timer={timer} isHost={isHost} startGame={startGame}>
+                   roomCode={roomCode} timer={timer} isHost={isHost} myID={myID} startGame={startGame}>
             </Lobby>
             }{roomStatus === ROOM_STATUS.ABOUT_TO_START &&
             <div className={"d-flex flex-fill align-items-center"}>
                 <div className={"container text-center"}>
-                    <h1>Be prepared... The game is about to start!</h1>
+                    <h1>Get ready!</h1>
+                    <h2>The game is about to start...</h2>
                 </div>
             </div>
 
@@ -133,7 +134,7 @@ function PlayPage() {
             // gameState ID is passed as key to force a re-render when the current game changes.
             <Game key={gameState.id} stompClient={stompClient} roomID={roomID} myID={myID}
                   setTimer={setTimer} scoreboard={scoreboard} setScoreboard={setScoreboard}
-                  {...gameState} setFinished={setFinished}></Game>
+                  {...gameState} setFinished={setFinished} hostID={hostID}></Game>
             }
         </div>
     )
