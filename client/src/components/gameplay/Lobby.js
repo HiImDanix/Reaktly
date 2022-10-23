@@ -10,46 +10,55 @@ import Config from "../../Config.json";
 function Lobby(props) {
 
     const perfectClicker = {
+        type: "PERFECT_CLICKER",
         title: "Perfect Clicker",
         instructions: "You have a target number. Click as fast as you can to reach it. But be careful - if you click over the target, you lose!",
         image: img_perfect_clicker
     }
 
     const trafficLight = {
+        type: "TRAFFIC_LIGHT",
         title: "Traffic Light",
         instructions: "Pay attention to the colour on the screen. When it changes to your target colour - tap as fast as you can!",
         image: img_traffic_light
     }
 
-    // game count
-    const [numOfGames, setNumOfGames] = useState({
-        [perfectClicker.title]: 0,
-        [trafficLight.title]: 0
-    });
+    // get games count by type
+    const getGameCount = (myGame) => {
+        let count = 0;
+        props.games.forEach(game => {
+            if (game.type === myGame.type) {
+                count++;
+            }
+        });
+        return count;
+    }
 
     // increase/decrease game count
     const updateGameCount = (game, increase) => {
-        console.log("updateGameCount", game.title, increase);
-        console.log("numOfGames", numOfGames);
-        setNumOfGames(prevState => {
-            return {
-                ...prevState,
-                [game.title]: increase ? prevState[game.title] + 1 : prevState[game.title] - 1
+        if (increase) {
+            props.stompClient.send("/app/room.add_game", JSON.stringify({
+                "type": game.type,
+            }));
+        } else {
+            const gameToRemove = props.games.find(g => g.type === game.type);
+            if (gameToRemove) {
+                props.stompClient.send("/app/room.remove_game", JSON.stringify({
+                    "id": gameToRemove.id
+                }));
             }
-        });
+        }
     }
-
-
 
     return (
         <>
             <div className="container py-3 py-xl-4">
                 <div className="row">
-                    <div className="col-6 text-end"><QRCode value={props.roomCode} size={150} bgColor={"#fff"} fgColor={"#2d2c38"} style={{outline: "10px solid white"}}/></div>
+                    <div className="col-6 text-end"><QRCode value={Config.SERVER_URL} size={150} bgColor={"#fff"} fgColor={"#2d2c38"} style={{outline: "10px solid white"}}/></div>
 
                     <div className="col-6 col-md-3 text-start d-flex flex-column justify-content-center align-items-start">
                         <h2 className="fw-bold"><span>{props.roomCode}</span><br /></h2>
-                        <p className="my-2">Invite your friends! Just ask them enter this game code at {Config.SERVER_URL}</p>
+                        <p className="my-2">Invite your friends! Just ask them enter the game code at {Config.SERVER_URL}</p>
                     </div>
                 </div>
             </div>
@@ -68,10 +77,10 @@ function Lobby(props) {
                 <div className="row gy-4 row-cols-2 row-cols-md-3 row-cols-xl-4 row-cols-xxl-5 justify-content-center">
                     <div className="col">
                         <div className="position-relative">
-                            <span className="badge bg-primary fs-6 position-absolute top-0 start-50 translate-middle bg-primary">{numOfGames[perfectClicker.title]}</span>
+                            <span className="badge bg-primary fs-6 position-absolute top-0 start-50 translate-middle bg-primary">{getGameCount(perfectClicker)}</span>
                             <img alt={perfectClicker.title} className="rounded d-block w-100 fit-cover" src={img_perfect_clicker} />
                             <div className="btn-group btn-group-sm w-100 mt-2" role="group">
-                                <button className="btn btn-danger" type="button" onClick={() => updateGameCount(perfectClicker, false)}>
+                                <button className={"btn btn-danger" + (getGameCount(perfectClicker) === 0 ? " disabled" : "")} onClick={() => updateGameCount(perfectClicker, false)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" className="bi bi-dash-lg">
                                         <path fillRule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z"></path>
                                     </svg>
@@ -91,7 +100,7 @@ function Lobby(props) {
 
                     <div className="col">
                         <div className="position-relative">
-                            <span className="badge bg-primary fs-6 position-absolute top-0 start-50 translate-middle bg-primary">{numOfGames[trafficLight.title]}</span>
+                            <span className="badge bg-primary fs-6 position-absolute top-0 start-50 translate-middle bg-primary">{getGameCount(trafficLight)}</span>
                             <img alt={trafficLight.title} className="rounded d-block w-100 fit-cover opacity-50" src={img_traffic_light} />
                             <div className="btn-group btn-group-sm w-100 mt-2" role="group">
                                 <button className="btn btn-danger disabled" type="button" onClick={() => updateGameCount(trafficLight, false)}>
@@ -137,7 +146,7 @@ function Lobby(props) {
 
             {props.isHost() && (
                 <div className={"container"}>
-                    <button className="btn btn-primary mb-3 w-100" type="button" onClick={props.startGame}>Start game</button>
+                    <button className="btn btn-primary mb-3 w-100" type="button" onClick={props.games.length > 0 ? props.startGame : () => alert("Please select at least one game")}>Start Game</button>
                 </div>
             )}
 
@@ -157,6 +166,8 @@ Lobby.propTypes = {
     myID: PropTypes.number,
     isHost: PropTypes.func.isRequired,
     startGame: PropTypes.func.isRequired,
+    stompClient: PropTypes.object.isRequired,
+    games: PropTypes.array.isRequired,
 }
 
 export default Lobby;

@@ -31,6 +31,7 @@ function PlayPage() {
     const [roomStatus, setRoomStatus] = useState(null);
     const [gameState, setGameState] = useState(null);
     const [scoreboard, setScoreboard] = useState(null);
+    const [games, setGames] = useState([]);
 
     // Redirect state
     const location = useLocation();
@@ -76,6 +77,7 @@ function PlayPage() {
                 setScoreboard(room.scoreboard);
                 setGameState(room.current_game);
                 setRoomStatus(room.status);
+                setGames(room.games);
                 if (room.status === ROOM_STATUS.ABOUT_TO_START) {
                     setTimer(room.start_time);
                 }
@@ -105,6 +107,14 @@ function PlayPage() {
                     setRoomStatus(ROOM_STATUS.IN_PROGRESS);
                 }
             });
+            stompClient.subscribe(ROOM_PREFIX + 'GAME_ADDED', (payload) => {
+                const game = JSON.parse(payload.body);
+                setGames(games => [...games, game]);
+            });
+            stompClient.subscribe(ROOM_PREFIX + 'GAME_REMOVED', (payload) => {
+                const game = JSON.parse(payload.body);
+                setGames(games => games.filter(g => g.id !== game.id));
+            });
         }
 
 
@@ -120,7 +130,7 @@ function PlayPage() {
             <PlayNav name={name} timer={timer}></PlayNav>
             {roomStatus === ROOM_STATUS.LOBBY &&
             <Lobby name={name} session={session} roomID={roomID} players={players}
-                   roomCode={roomCode} timer={timer} isHost={isHost} myID={myID} startGame={startGame}>
+                   roomCode={roomCode} games={games} timer={timer} isHost={isHost} myID={myID} startGame={startGame} stompClient={stompClient}>
             </Lobby>
             }{roomStatus === ROOM_STATUS.ABOUT_TO_START &&
             <div className={"d-flex flex-fill align-items-center"}>

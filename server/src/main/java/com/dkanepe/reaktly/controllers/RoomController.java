@@ -1,10 +1,7 @@
 package com.dkanepe.reaktly.controllers;
 
 import com.dkanepe.reaktly.MapStructMapper;
-import com.dkanepe.reaktly.dto.JoinRoomRequest;
-import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
-import com.dkanepe.reaktly.dto.PlayerDTO;
-import com.dkanepe.reaktly.dto.RoomDTO;
+import com.dkanepe.reaktly.dto.*;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.services.PlayerService;
@@ -90,4 +87,22 @@ public class RoomController {
     public RoomDTO getRoom(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         return roomService.getRoom(headerAccessor);
     }
+
+    /**
+     * Add game to room
+     */
+    @MessageMapping("room.add_game")
+    public void addGameToRoom(SimpMessageHeaderAccessor headerAccessor, GameShortDTO gameShortDTO) throws InvalidSession {
+        roomService.addGameToRoom(headerAccessor, gameShortDTO);
+    }
+
+    /**
+     * Remove game from room
+     */
+    @MessageMapping("room.remove_game")
+    public void removeGameFromRoom(SimpMessageHeaderAccessor headerAccessor, GameRemovedDTO gameRemovedDTO) throws InvalidSession {
+        System.out.println("Removing game " + gameRemovedDTO);
+        roomService.removeGameFromRoom(headerAccessor, gameRemovedDTO);
+    }
+
 }

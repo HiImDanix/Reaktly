@@ -2,17 +2,17 @@ package com.dkanepe.reaktly.services;
 
 import com.dkanepe.reaktly.MapStructMapper;
 import com.dkanepe.reaktly.actions.RoomActions;
-import com.dkanepe.reaktly.dto.JoinRoomRequest;
-import com.dkanepe.reaktly.dto.PersonalPlayerDTO;
-import com.dkanepe.reaktly.dto.RoomDTO;
+import com.dkanepe.reaktly.dto.*;
 import com.dkanepe.reaktly.exceptions.InvalidRoomCode;
 import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
+import com.dkanepe.reaktly.repositories.GameRepository;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
 import com.dkanepe.reaktly.repositories.RoomRepository;
+import com.dkanepe.reaktly.services.games.GameFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Service;
@@ -29,14 +29,20 @@ public class RoomService {
     private final PlayerRepository playerRepository;
     private final CommunicationService messaging;
     private final PlayerService playerService;
+    private final GameFactory gameFactory;
+    private final GameRepository gameRepository;
 
     @Autowired
-    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper, CommunicationService messaging, PlayerService playerService) {
+    public RoomService(RoomRepository roomRepository, PlayerRepository playerRepository, MapStructMapper mapper,
+                       CommunicationService messaging, PlayerService playerService, GameFactory gameFactory,
+                       GameRepository gameRepository) {
         this.roomRepository = roomRepository;
         this.playerRepository = playerRepository;
         this.mapper = mapper;
         this.messaging = messaging;
         this.playerService = playerService;
+        this.gameFactory = gameFactory;
+        this.gameRepository = gameRepository;
     }
 
     /**
@@ -92,6 +98,7 @@ public class RoomService {
         // add default games, for now.
         room.getGames().add(new PerfectClicker(10));
         room.getGames().add(new PerfectClicker(20));
+        room.getGames().add(new PerfectClicker(20));
         roomRepository.save(room);
         return mapper.playerToPersonalPlayerDTO(player);
     }
@@ -101,6 +108,25 @@ public class RoomService {
         Player player = playerService.findBySessionOrThrowNonDTO(headers);
         Room room = player.getRoom();
         return mapper.roomToRoomDTO(room);
+    }
+
+    @Transactional
+    public void addGameToRoom(SimpMessageHeaderAccessor headers, GameShortDTO gameShortDTO) throws InvalidSession {
+        Player player = playerService.findBySessionOrThrowNonDTO(headers);
+        Room room = player.getRoom();
+        Game game = gameFactory.createGame(gameShortDTO.getType());
+        room.getGames().add(game);
+        game = gameRepository.save(game);
+        messaging.sendToRoom(RoomActions.GAME_ADDED, room.getID(), mapper.gameToGameAddedDTO(game));
+    }
+
+    @Transactional
+    public void removeGameFromRoom(SimpMessageHeaderAccessor headers, GameRemovedDTO gameRemovedDTO) throws InvalidSession {
+        Player player = playerService.findBySessionOrThrowNonDTO(headers);
+        Room room = player.getRoom();
+        Game game = gameRepository.findById(gameRemovedDTO.getID()).orElseThrow();
+        room.getGames().remove(game);
+        messaging.sendToRoom(RoomActions.GAME_REMOVED, room.getID(), mapper.gameToGameRemovedDTO(game));
     }
 
     public void updateRoomStatus(Room room, Room.Status status) {

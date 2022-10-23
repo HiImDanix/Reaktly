@@ -78,4 +78,8 @@ public abstract class MapStructMapper {
         tableDTO.setHeaders(headers);
         tableDTO.setRows(data);
     }
+
+    public abstract GameShortDTO gameToGameAddedDTO(Game game);
+
+    public abstract GameRemovedDTO gameToGameRemovedDTO(Game game);
 }
