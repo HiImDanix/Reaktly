@@ -1,5 +1,5 @@
-import {useState} from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import {useState, useEffect} from "react";
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ACTION} from "./EnterNamePage";
 import Config from "../../Config.json"
@@ -9,9 +9,11 @@ function SectionPlay() {
 
     const navigate = useNavigate();
 
-    const [roomCode, setRoomCode] = useState("");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [roomCode, setRoomCode] = useState(searchParams.get("room_code") || "");
 
-    const validateRoomCode = async (e) => {
+
+    const joinRoom = async (e) => {
         e.preventDefault();
         const res = await fetch(`${Config.SERVER_URL}/room_code/` + roomCode);
         console.log(res);
@@ -40,7 +42,7 @@ function SectionPlay() {
                                       value={roomCode.toUpperCase()}/>
                         </div>
                         <div class="mb-3">
-                            <button class="btn btn-primary ms-sm-2" onClick={validateRoomCode}>Join game</button>
+                            <button class="btn btn-primary ms-sm-2" onClick={joinRoom}>Join game</button>
                         </div>
                     </form>
                 </div>

@@ -50,11 +50,20 @@ function Lobby(props) {
         }
     }
 
+    const getJoinRoomURL = () => {
+        const url = new URL(Config.CLIENT_URL);
+        url.searchParams.append("room_code", props.roomCode);
+        return url.toString();
+    }
+
     return (
         <>
             <div className="container py-3 py-xl-4">
                 <div className="row">
-                    <div className="col-6 text-end"><QRCode value={Config.SERVER_URL} size={150} bgColor={"#fff"} fgColor={"#2d2c38"} style={{outline: "10px solid white"}}/></div>
+                    <div className="col-6 text-end">
+                        <QRCode value={getJoinRoomURL()}
+                                size={150} bgColor={"#fff"} fgColor={"#2d2c38"} style={{outline: "10px solid white"}}/>
+                    </div>
 
                     <div className="col-6 col-md-3 text-start d-flex flex-column justify-content-center align-items-start">
                         <h2 className="fw-bold"><span>{props.roomCode}</span><br /></h2>
