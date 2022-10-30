@@ -25,13 +25,12 @@ public class PlayerService {
         return mapper.playerToPlayerDTO(player);
     }
 
-    public PlayerDTO findBySessionOrThrow(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
-        String session = (String) headerAccessor.getSessionAttributes().get(SessionParameters.PLAYER_SESSION.toString());
-        return findBySessionOrThrow(session);
-    }
-
     public Player findBySessionOrThrowNonDTO(SimpMessageHeaderAccessor headerAccessor) throws InvalidSession {
         String session = (String) headerAccessor.getSessionAttributes().get(SessionParameters.PLAYER_SESSION.toString());
+        return playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
+    }
+
+    public Player findBySessionOrThrowNonDTO(String session) throws InvalidSession {
         return playerRepository.findBySession(session).orElseThrow(InvalidSession::new);
     }
 }

@@ -1,7 +1,9 @@
 package com.dkanepe.reaktly;
 
+import com.dkanepe.reaktly.exceptions.InvalidSession;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.repositories.PlayerRepository;
+import com.dkanepe.reaktly.services.PlayerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -20,13 +22,17 @@ import java.util.Optional;
 @Component
 public class WebSocketAuthInterceptorAdapter implements ChannelInterceptor {
 
-    private PlayerRepository playerRepository;
+    private PlayerService playerService;
 
     @Autowired
-    public WebSocketAuthInterceptorAdapter(PlayerRepository playerRepository) {
-        this.playerRepository = playerRepository;
+    public WebSocketAuthInterceptorAdapter(PlayerService playerService) {
+        this.playerService = playerService;
     }
 
+    /**
+     * Called when websocket connection is established. Checks if session is valid & associates it with the connection.
+     * @throws AuthenticationException if session is invalid
+     */
     @Override
     public Message<?> preSend(final Message<?> message, final MessageChannel channel) throws AuthenticationException {
 
@@ -35,15 +41,16 @@ public class WebSocketAuthInterceptorAdapter implements ChannelInterceptor {
 
         if (StompCommand.CONNECT == cmd) {
             String sessionToken = accessor.getFirstNativeHeader("Authorization");
-            log.info("Session token: " + sessionToken);
-            Optional<Player> player = playerRepository.findBySession(sessionToken);
-            log.info("Player: " + player);
-            if (player.isEmpty()) {
-                log.info("Player not found. Invalid session token.");
-                throw new AccessDeniedException("Invalid session token");
+            Player player;
+            try {
+                player = playerService.findBySessionOrThrowNonDTO(sessionToken);
+                log.info("New player: " + player);
+            } catch (InvalidSession e) {
+                log.error("Invalid session: " + sessionToken);
+                throw new AccessDeniedException("Invalid session");
             }
             // Save player session ID in header accessor session attributes
-            accessor.getSessionAttributes().put(SessionParameters.PLAYER_SESSION.toString(), player.get().getSession());
+            accessor.getSessionAttributes().put(SessionParameters.PLAYER_SESSION.toString(), player.getSession());
         }
         return message;
     }
