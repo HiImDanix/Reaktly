@@ -5,7 +5,7 @@ import {useState} from "react";
 import img_perfect_clicker from "../../assets/img/games/perfect_clicker.png";
 import img_traffic_light from "../../assets/img/games/traffic_light.png";
 
-import Config from "../../Config.json";
+import Config from "../../Config.js";
 
 function Lobby(props) {
 
@@ -66,8 +66,9 @@ function Lobby(props) {
                     </div>
 
                     <div className="col-6 col-md-3 text-start d-flex flex-column justify-content-center align-items-start">
-                        <h2 className="fw-bold"><span>{props.roomCode}</span><br /></h2>
-                        <p className="my-2">Invite your friends! Just ask them enter the game code at {Config.SERVER_URL}</p>
+                        <h5 className="fw-bold"><span>{props.roomCode}</span><br /></h5>
+                        <p className="w-100 text-break">Invite friends! Share room code above, or <a href={getJoinRoomURL()}>{getJoinRoomURL()}</a>
+                        </p>
                     </div>
                 </div>
             </div>

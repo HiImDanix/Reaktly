@@ -6,8 +6,6 @@ import Lobby from "./Lobby";
 import Game from "./Game";
 import Websocket from "../../Websocket";
 
-import Config from "../../Config.json";
-
 function PlayPage() {
 
     // enum for room status

@@ -2,11 +2,10 @@ import {useState, useEffect} from "react";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { ACTION} from "./EnterNamePage";
-import Config from "../../Config.json"
+import Config from "../../Config.js"
 
 
 function SectionPlay() {
-
     const navigate = useNavigate();
 
     const [searchParams, setSearchParams] = useSearchParams();

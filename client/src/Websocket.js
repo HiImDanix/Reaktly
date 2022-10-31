@@ -1,6 +1,7 @@
 import * as SockJS from 'sockjs-client';
 import { Stomp } from '@stomp/stompjs';
-import Config from "./Config.json";
+
+import Config from './Config';
 
 /**
  * Websocket class
