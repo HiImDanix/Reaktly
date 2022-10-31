@@ -10,6 +10,8 @@ import Nav from "./Nav";
 import {useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 
+import Config from "../../Config.js";
+
 
 function MainPage(){
 
@@ -21,9 +23,8 @@ function MainPage(){
         const id = localStorage.getItem("id");
         const name = localStorage.getItem("name");
         if (session !== null && id !== null && name !== null) {
-            console.log("Redirecting to play page");
             // make a request to check if session is valid
-            fetch("http://localhost:8080/player/session/" + session)
+            fetch(`${Config.SERVER_URL}/player/session/` + session)
                 .then(res => {
                     if (res.status === 200) {
                         return navigate("/play", {state: {name: name, session: session, id: id}});
