@@ -173,7 +173,7 @@ Lobby.propTypes = {
     players: PropTypes.array.isRequired,
     roomCode: PropTypes.string,
     timer: PropTypes.number,
-    myID: PropTypes.number,
+    myID: PropTypes.string,
     isHost: PropTypes.func.isRequired,
     startGame: PropTypes.func.isRequired,
     stompClient: PropTypes.object.isRequired,

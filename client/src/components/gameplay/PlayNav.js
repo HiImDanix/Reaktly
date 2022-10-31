@@ -1,6 +1,7 @@
 import {ReactComponent as Logo} from "../../assets/img/logo_inverse.svg";
 import Countdown from "react-countdown";
 import {useNavigate} from "react-router-dom";
+import {PropTypes} from "prop-types";
 
 function PlayNav(props) {
 
@@ -65,6 +66,10 @@ function PlayNav(props) {
             </div>
         </nav>
     )
+}
+
+PlayNav.propTypes = {
+    timer: PropTypes.number
 }
 
 export default PlayNav;
