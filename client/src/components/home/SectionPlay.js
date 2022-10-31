@@ -1,7 +1,7 @@
 import {useState, useEffect} from "react";
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
-import { ACTION} from "./EnterNamePage";
+import { ACTION} from "./pages/EnterNamePage";
 import Config from "../../Config.js"
 
 

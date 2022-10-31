@@ -1,9 +1,9 @@
 import {BrowserRouter, Routes, Route} from "react-router-dom";
 
-import MainPage from './components/home/MainPage';
-import ContactPage from "./components/home/ContactPage";
-import PlayPage from "./components/gameplay/PlayPage";
-import EnterNamePage from "./components/home/EnterNamePage";
+import MainPage from './components/home/pages/MainPage';
+import ContactPage from "./components/home/pages/ContactPage";
+import PlayPage from "./components/gameplay/pages/PlayPage";
+import EnterNamePage from "./components/home/pages/EnterNamePage";
 
 function App() {
   return (

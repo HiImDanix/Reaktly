@@ -1,16 +1,16 @@
-import '../../assets/bootstrap/css/bootstrap.min.css';
-import '../../assets/scss/main.scss';
+import '../../../assets/bootstrap/css/bootstrap.min.css';
+import '../../../assets/scss/main.scss';
 
 
 
-import SectionGames from "./SectionGames";
-import Footer from "./Footer";
-import SectionPlay from "./SectionPlay";
-import Nav from "./Nav";
+import SectionGames from "../SectionGames";
+import Footer from "../Footer";
+import SectionPlay from "../SectionPlay";
+import Nav from "../Nav";
 import {useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 
-import Config from "../../Config.js";
+import Config from "../../../Config.js";
 
 
 function MainPage(){

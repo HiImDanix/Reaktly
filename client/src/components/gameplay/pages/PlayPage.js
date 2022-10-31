@@ -1,10 +1,10 @@
 import {useLocation} from "react-router";
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import PlayNav from "./PlayNav";
-import Lobby from "./Lobby";
-import Game from "./Game";
-import Websocket from "../../Websocket";
+import PlayNav from "../PlayNav";
+import Lobby from "../Lobby";
+import Game from "../Game";
+import Websocket from "../../../Websocket";
 
 function PlayPage() {
 

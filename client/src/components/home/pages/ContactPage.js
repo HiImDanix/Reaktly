@@ -1,6 +1,6 @@
-import Nav from "./Nav";
-import Footer from "./Footer";
-import SectionContact from "./SectionContact";
+import Nav from "../Nav";
+import Footer from "../Footer";
+import SectionContact from "../SectionContact";
 
 function ContactPage() {
     return (

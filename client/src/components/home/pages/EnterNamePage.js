@@ -1,8 +1,8 @@
-import Nav from "./Nav";
+import Nav from "../Nav";
 import { useLocation } from "react-router";
 import {useNavigate} from 'react-router-dom';
 import {useState, useEffect} from "react";
-import Config from "../../Config.js";
+import Config from "../../../Config.js";
 
 const ACTION = {
     JOIN_ROOM: 0,
