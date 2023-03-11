@@ -111,14 +111,14 @@ function Lobby(props) {
                     <div className="col">
                         <div className="position-relative">
                             <span className="badge bg-primary fs-6 position-absolute top-0 start-50 translate-middle bg-primary">{getGameCount(trafficLight)}</span>
-                            <img alt={trafficLight.title} className="rounded d-block w-100 fit-cover opacity-50" src={img_traffic_light} />
+                            <img alt={trafficLight.title} className="rounded d-block w-100 fit-cover" src={img_traffic_light} />
                             <div className="btn-group btn-group-sm w-100 mt-2" role="group">
-                                <button className="btn btn-danger disabled" type="button" onClick={() => updateGameCount(trafficLight, false)}>
+                                <button className={"btn btn-danger" + (getGameCount(trafficLight) === 0 ? " disabled" : "")} type="button" onClick={() => updateGameCount(trafficLight, false)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" className="bi bi-dash-lg">
                                         <path fillRule="evenodd" d="M2 8a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11A.5.5 0 0 1 2 8Z"></path>
                                     </svg>
                                 </button>
-                                <button className="btn btn-success disabled" type="button" onClick={() => updateGameCount(trafficLight, true)}>
+                                <button className="btn btn-success" type="button" onClick={() => updateGameCount(trafficLight, true)}>
                                     <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="currentColor" viewBox="0 0 16 16" className="bi bi-dash-lg">
                                         <path fillRule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"></path>
                                     </svg>

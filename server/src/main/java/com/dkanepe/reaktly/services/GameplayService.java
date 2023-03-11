@@ -152,7 +152,7 @@ public class GameplayService {
     /**
      * Wait until the game has finished.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public void waitForGameToFinish(Room room) {
         room = entityManager.find(Room.class, room.getID());
         try {

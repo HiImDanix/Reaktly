@@ -20,7 +20,8 @@ public abstract class Game {
     }
 
     public enum GameType {
-        PERFECT_CLICKER
+        PERFECT_CLICKER,
+        TRAFFIC_LIGHT
     }
 
     @Id
