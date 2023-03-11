@@ -70,7 +70,8 @@ public class TrafficLightService implements GameService {
     @Override
     @Transactional(readOnly = true)
     public List<Player> getTopPlayers(Game theGame) {
-        return null;
+        // For now, return empty list
+        return List.of();
     }
 
 
@@ -81,7 +82,7 @@ public class TrafficLightService implements GameService {
     @Transactional
     public void distributePoints(Game theGame, int maxPoints, int firstPlaceBonus, int secondPlaceBonus,
                                  int thirdPlaceBonus) {
-        return;
+        // For now, do nothing
     }
 
     /**
@@ -90,7 +91,12 @@ public class TrafficLightService implements GameService {
     @Override
     @Transactional(readOnly = true)
     public TableDTO getStatistics(Game theGame) {
-        return null;
+        // TODO: Find a better data structure than this. Should include Player (obj) as 1st, and clicks as 2nd.
+        //  First column should be required and standardized.
+        //  Eventually move to the mapper.
+        // For now, return empty table
+        String[] headers = new String[]{"Player", "Clicks", "Clicks/Sec"};
+        return new TableDTO(headers, new String[0][0]);
     }
 }
 
