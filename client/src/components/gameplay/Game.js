@@ -67,6 +67,8 @@ function Game(props) {
                 case GameType.PERFECT_CLICKER:
                     return (<PerfectClickerGame myID={props.myID} roomID={props.roomID} stompClient={props.stompClient}
                                                 shortInstructions={shortInstructions} {...game}></PerfectClickerGame>);
+                    case GameType.TRAFFIC_LIGHT:
+                        return (<div>Traffic Light</div>);
                 default:
                     return (<div>Error: Unknown game type</div>);
             }

@@ -3,6 +3,7 @@ package com.dkanepe.reaktly;
 import com.dkanepe.reaktly.dto.*;
 import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerDTO;
 import com.dkanepe.reaktly.dto.PerfectClicker.PerfectClickerGameStateDTO;
+import com.dkanepe.reaktly.dto.TrafficLight.TrafficLightDTO;
 import com.dkanepe.reaktly.models.Player;
 import com.dkanepe.reaktly.models.Room;
 import com.dkanepe.reaktly.models.Scoreboard;
@@ -10,7 +11,9 @@ import com.dkanepe.reaktly.models.ScoreboardLine;
 import com.dkanepe.reaktly.models.games.Game;
 import com.dkanepe.reaktly.models.games.PerfectClicker.GameStatePerfectClicker;
 import com.dkanepe.reaktly.models.games.PerfectClicker.PerfectClicker;
+import com.dkanepe.reaktly.models.games.TrafficLight.TrafficLight.TrafficLight;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
+import com.dkanepe.reaktly.services.games.TrafficLightService;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -27,6 +30,10 @@ public abstract class MapStructMapper {
     @Autowired
     @Lazy
     PerfectClickerService perfectClickerService;
+
+    @Autowired
+    @Lazy
+    TrafficLightService trafficLightService;
 
     public abstract PlayerDTO playerToPlayerDTO(Player player);
 
@@ -47,15 +54,27 @@ public abstract class MapStructMapper {
 
     public abstract PerfectClickerDTO perfectClickerToPerfectClickerDTO(PerfectClicker perfectClicker);
 
+    public abstract TrafficLightDTO trafficLightToTrafficLightDTO(TrafficLight trafficLight);
+
     public abstract List<PerfectClickerGameStateDTO> perfectClickerGameStateToDTO(List<GameStatePerfectClicker> gameStatePerfectClickers);
 
-    public abstract GameDTO gameToGameDTO(PerfectClicker perfectClicker);
+    public abstract GameDTO gameToGameDTO(Game game);
 
     @AfterMapping
-    public void afterMappingGameToGameDTO(PerfectClicker perfectClicker, @MappingTarget GameDTO gameDTO) {
-        gameDTO.setStatistics(perfectClickerService.getStatistics(perfectClicker));
-        // Debug
-        gameDTO.setGame(perfectClickerToPerfectClickerDTO(perfectClicker));
+    public void afterMappingGameToGameDTO(Game game, @MappingTarget GameDTO gameDTO) {
+        switch (game.getType()) {
+            case PERFECT_CLICKER -> {
+                PerfectClicker perfectClicker = (PerfectClicker) game;
+                gameDTO.setStatistics(perfectClickerService.getStatistics(perfectClicker));
+                gameDTO.setGame(perfectClickerToPerfectClickerDTO(perfectClicker));
+            }
+            case TRAFFIC_LIGHT -> {
+                TrafficLight trafficLight = (TrafficLight) game;
+                gameDTO.setStatistics(trafficLightService.getStatistics(trafficLight));
+                gameDTO.setGame(trafficLightToTrafficLightDTO(trafficLight));
+            }
+            default -> throw new IllegalArgumentException("Unknown game type (mapper): " + game.getType());
+        }
     }
 
 

@@ -17,6 +17,7 @@ import com.dkanepe.reaktly.repositories.RoomRepository;
 import com.dkanepe.reaktly.repositories.ScoreboardRepository;
 import com.dkanepe.reaktly.services.games.GameService;
 import com.dkanepe.reaktly.services.games.PerfectClickerService;
+import com.dkanepe.reaktly.services.games.TrafficLightService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -36,6 +37,7 @@ public class GameplayService {
     private final PlayerService playerService;
     private final RoomRepository roomRepository;
     private final PerfectClickerService perfectClickerService;
+    private final TrafficLightService trafficLightService;
     private final GameplayService self;
     private final CommunicationService messaging;
     private final RoomService roomService;
@@ -47,7 +49,7 @@ public class GameplayService {
                            PlayerService playerService, RoomRepository roomRepository,
                            PerfectClickerService perfectClickerService, @Lazy GameplayService self,
                            CommunicationService messaging, RoomService roomService, GameRepository gameRepository,
-                           EntityManager entityManager) {
+                           EntityManager entityManager, TrafficLightService trafficLightService) {
         this.scoreboardRepository = scoreboardRepository;
         this.mapper = mapper;
         this.playerService = playerService;
@@ -58,6 +60,7 @@ public class GameplayService {
         this.roomService = roomService;
         this.gameRepository = gameRepository;
         this.entityManager = entityManager;
+        this.trafficLightService = trafficLightService;
     }
 
     /**
@@ -144,6 +147,7 @@ public class GameplayService {
         Game.GameType gameType = room.getCurrentGame().getType();
         switch (gameType) {
             case PERFECT_CLICKER -> gameService = perfectClickerService;
+            case TRAFFIC_LIGHT -> gameService = trafficLightService;
             default -> log.error("Game type not supported: {}", gameType);
         }
         return gameService;
@@ -204,7 +208,7 @@ public class GameplayService {
         game.setStartTime(System.currentTimeMillis() + 5000);
         game.setStatus(Game.GameStatus.INSTRUCTIONS);
         gameRepository.save(game);
-        messaging.sendToGame(GameplayActions.GAME_START_INFO, room.getID(), mapper.gameToGameDTO((PerfectClicker) game));
+        messaging.sendToGame(GameplayActions.GAME_START_INFO, room.getID(), mapper.gameToGameDTO(game));
         return game.getStartTime();
     }
 
@@ -220,14 +224,9 @@ public class GameplayService {
         gameRepository.save(game);
         messaging.sendToGame(GameplayActions.GAME_START_PING, room.getID(), "");
 
-        // Start the specific game's game-loop in a new thread.
-        Game.GameType gameType = room.getCurrentGame().getType();
-
+        // Start the game loop in a new thread.
         Thread gameLoop = new Thread(() -> {
-            switch (gameType) {
-                case PERFECT_CLICKER -> gameService.startGameLoop(game);
-                default -> log.error("Game type not supported: {}", gameType);
-            }
+            gameService.startGameLoop(game);
         });
         gameLoop.start();
         return gameLoop;
