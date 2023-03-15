@@ -13,23 +13,24 @@ A reaction-based party game platform.
 
 **Server:** Spring Boot, Hibernate, h2 Database Engine
 
-**Tech:** Websockets
+**Other:** Websockets
 
 
 
 
-## FAQ
+## About
 
 #### Demo
 
-Soon™. (22/10/2022) A video demonstration can be seen here: https://youtu.be/oTZa19e4GS8
+An early prototype video demonstration can be seen here: https://youtu.be/oTZa19e4GS8
+
 
 #### Features
 
-So far, you are able to play with other users only one game - Perfect Clicker.
+As a solo developer working on this project in my free time for fun, progress is not always linear, but I am actively working on adding more games and features to the platform.
 
-But, this is a project I am currently working on very actively, so expect quick progress. 
+Currently, Reaktly only supports one game - Perfect Clicker. But rest assured, I am constantly working on improving the platform and adding new games to enhance the gaming experience.
 
-Current progress can be seen here: https://trello.com/b/va1AyR4q/reaktly
+To stay updated on the progress of Reaktly, you can visit my Trello board - https://trello.com/b/va1AyR4q/reaktly
 
 
